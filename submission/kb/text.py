@@ -121,7 +121,7 @@ class TextAnswerer:
         if hours_q and not re.search(
                 r"volunteer|hours of|work hours", low):
             return self.hours(q, view)
-        if re.search(r"\baddress(es)?\b|\bwhere(?: is|'s|’s| are| can i find)\b|\blocated\b|\blocations? of\b", low) and re.search(
+        if re.search(r"\baddress(es)?\b|\bwhere(?: exactly)?(?: is| are|'s|’s)\b|\blocated\b|\blocations? of\b", low) and re.search(
                 r"branch|office|location", low):
             r = self.address(q, view)
             if r:
@@ -194,9 +194,20 @@ class TextAnswerer:
     def best_sentences(self, q: Query, view) -> Optional[dict]:
         # A key word the site never uses at all ("SWIFT code") means the site can't answer it.
         idf = self.s.index.idf
-        unknown = [t for t in q.toks if t not in GENERIC_Q and t.isalpha() and len(t) >= 4 and t not in idf]
-        if unknown and len([t for t in q.toks if t not in GENERIC_Q]) <= 6:
+        # Only names count: an unknown capitalised word ("SWIFT", "Visa Signature") is something the site doesn't
+        # have; an unknown ordinary word ("shut") is just phrasing.
+        names = {w.lower() for w in re.findall(r"\b[A-Z][A-Za-z]{2,}\b", q.raw)[1:]} | {
+            w.lower() for w in re.findall(r"\b[A-Z]{3,}\b", q.raw)}
+        unknown = [t for t in q.toks if t.isalpha() and len(t) >= 3 and t not in idf and t in {tokens(n)[0] for n in names if tokens(n)}]
+        if unknown:
             return {"refuse": f"site never mentions {unknown}"}
+        # A named product the site never mentions as a phrase ("Visa Signature card") isn't offered.
+        prod = re.search(r"\b((?:[A-Z][a-z]+\s+){0,2}(?:Visa|Mastercard)(?:\s+[A-Z][a-z]+){1,2}|"
+                         r"(?:[A-Z][a-z]+\s+){1,2}(?:Checking|Savings|Money Market|Certificate|Card|Loan))\b", q.raw)
+        if prod:
+            phrase = re.sub(r"^(Dupaco|The|A|An|My|Your)\s+", "", prod.group(1)).lower()
+            if " " in phrase and not self._phrase_on_site(phrase, view):
+                return {"refuse": f"no product named {phrase!r}"}
         # Sentences that don't mention the question's named entity can't answer it (joint == 0).
         ranked = [r for r in self.ranked_sentences(q, view) if r[2] > 0]
         if not ranked:
@@ -301,30 +312,42 @@ class TextAnswerer:
             return None
         mass = sum(idf.get(t, 1.0) for t in want)
         best = None
+        multi = re.search(r"\bfees\b|,|\band\b", q.raw.lower())
+        floor = 0.3 if multi else 0.6        # a list question only partly matches each of its lines
         for u, line, item, amt in self.fee_lines(view):
             it = set(tokens(item))
             cov = sum(idf.get(t, 1.0) for t in want if t in it) / mass
             extra = len(it - set(want))          # prefer the most specific item name
             key = (cov, -extra, u.authority, -u.uid)
-            if cov >= 0.6 and (best is None or key > best[0]):
+            if cov >= floor and (best is None or key > best[0]):
                 best = (key, u, item, amt)
-        multi = re.search(r"\bfees\b|,|\band\b", q.raw.lower())
         if multi:
             # "wire fees (incoming, domestic and international)": every line naming the main thing asked about
-            head = max(want, key=lambda t: sum(t in tokens(it) for _, _, it, _ in self.fee_lines(view)) * idf.get(t, 1.0))
+            # every line on the same schedule that matches the question about as well as the best line does
+            best_cov = best[0][0] if best else 0.0
             lines = []
             for u, line, item, amt in self.fee_lines(view):
-                if head in tokens(item) and (best is None or u.url == best[1].url):
+                it = set(tokens(item))
+                cov = sum(idf.get(t, 1.0) for t in want if t in it) / mass
+                if best and cov >= (0.5 if best_cov < 0.6 else 0.75) * best_cov and u.url == best[1].url:
                     lines.append(f"{item}: {re.sub(r'[*]', '', amt).strip()}")
             lines = list(dict.fromkeys(lines))
-            if 1 < len(lines) <= 6:
-                src = best[1] if best else next(u for u, _, it, _ in self.fee_lines(view) if head in tokens(it))
-                return {"text": "; ".join(lines) + ".", "units": [src]}
-        if not best:
+            if 1 < len(lines) <= 8:
+                return {"text": "; ".join(lines) + ".", "units": [best[1]]}
+        if not best or best[0][0] < 0.6:
             return None
         _, u, item, amt = best
         amt = re.sub(r"\*", "", amt).strip()
         return {"text": f"{item}: {amt}.", "units": [u]}
+
+    def _phrase_on_site(self, phrase: str, view) -> bool:
+        cache = self.__dict__.setdefault("_phrase_cache", {})
+        key = (phrase, view.snapshot_id)
+        if key not in cache:
+            pat = re.compile(r"\b" + r"[\s-]+".join(map(re.escape, phrase.split())) + r"\b", re.I)
+            cache[key] = any(pat.search(self.s.units[u].text) or pat.search(self.s.units[u].title)
+                             for u in view.units)
+        return cache[key]
 
     # ------------------------------------------------------------------ hours
     def schedules(self, view) -> list[tuple[Unit, str, list[tuple[str, str]]]]:

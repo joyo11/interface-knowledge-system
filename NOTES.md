@@ -18,13 +18,22 @@ Ingesting all five snapshots takes about 1.5 s, and answers take about 10–50 m
 On `eval/public_eval.jsonl` the system scores **accuracy 0.87**, with consistency and speed at 1.0. That
 gives **0.87 final** on the public set, which has no conflict gold.
 
-I also kept three sets of my own in `dev/`, so I wasn't only tuning on the 40 public questions:
+I also kept five sets of my own in `dev/`, so I wasn't only tuning on the 40 public questions:
 - `dev_eval.jsonl` has 34 new questions: other products, tiers, "as of" dates, a withdrawn special and refusals.
   It scores 1.0.
 - `paraphrase_eval.jsonl` has 31 rewordings of public questions. It scores 0.93.
 - `review_eval.jsonl` has 95 questions written by an independent adversarial reviewer, covering fees, contact
-  facts, odd phrasings, dates and refusals. It started at 0.62. Fixing the root causes it exposed took it to
-  0.93; that number is now partly fitted.
+  facts, odd phrasings, dates and refusals. It started at 0.62 and is now 0.95.
+- `blind_eval.jsonl` has 70 questions written blind: the writer never saw the code or the other sets. It
+  started at 0.71 and is now 0.93.
+
+- `blind3_eval.jsonl` has 60 questions from a second blind round on a later version. It scored 0.75 blind
+  and is now 0.87.
+
+The review and blind numbers after fixing are partly fitted, because I fixed the root causes each set exposed.
+The fixes were general rules, not per-question answers. **My honest estimate for unseen questions is the last
+blind score before fixing: about 0.75.** None of these sets ever caught a stale or wrong-tier value in an
+answer.
 
 The harness self-test is a different, synthetic credit union. It scores 1.0, including conflict F1 = 1.0.
 

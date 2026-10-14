@@ -23,7 +23,7 @@ GENERIC = set(tokens(
     "rate apr apy interest dividend yield annual percentage month year term earn pay pays paying charge offer much "
     "highest lowest best standard balance between tier right now provide like know see account still available "
     "offered anymore today currently finance financing borrow borrowing get getting would qualify option options "
-    "list all every each top highest lowest need needed think thinking want looking plan planning avoid show "
+    "brand new used list all every each top highest lowest need needed think thinking want looking plan planning avoid show "
     "open opening ago last previous back then earlier end beginning start mid middle early late "
     "january february march april may june july august september october november december"))
 

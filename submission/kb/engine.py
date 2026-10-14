@@ -29,7 +29,7 @@ class Engine:
             if r:
                 return r
         availability = bool(re.search(r"\b(still|available|offer|discontinued|anymore|any more)\b", q.raw.lower()))
-        min_q = bool(re.search(r"\bminimum\b|\bmin\.? to\b", q.raw.lower()))
+        min_q = _wants_minimum(q.raw)
         if q.rate_intent or (availability and q.term_months) or min_q:
             r = self._rates(q, view)
             if r:
@@ -83,7 +83,7 @@ class Engine:
             rows = sorted(rows, key=lambda r: g.winner.table.rows.index(r.row))[:8]
             product = _product_name(g.winner)
             parts = []
-            want_min = bool(re.search(r"\bminimum\b|\bmin\.?\b|\bhow much (do i need|to open)\b", q.raw.lower()))
+            want_min = _wants_minimum(q.raw)
             low = q.raw.lower()
             # "after the promotional period" asks for the standard rate; "intro/promo rate" for the introductory one
             intro = (False if re.search(r"\bafter (the )?(intro|promo)", low) else
@@ -176,6 +176,13 @@ class Engine:
 
     def _refuse(self, why: str) -> dict:
         return {"text": REFUSAL, "sources": [], "confident": False, "note": why}
+
+
+def _wants_minimum(raw: str) -> bool:
+    """'What's the minimum to open X?' asks for the minimum; 'the special ($1,000 minimum)' only names a tier."""
+    low = raw.lower()
+    low = re.sub(r"\$[\d,.]+\s*(minimum|min\.?)|(minimum|min\.?) (of )?\$[\d,.]+", " ", low)
+    return bool(re.search(r"\bminimum\b|\bmin\.? to\b|\bhow much (do i need|to open)\b", low))
 
 
 def _tightest_tiers(rows):
