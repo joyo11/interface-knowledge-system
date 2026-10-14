@@ -23,6 +23,8 @@ SYNONYMS = {
     "savings": "saving", "checking": "checking", "dividends": "dividend", "members": "member",
     "vehicles": "vehicle", "cars": "auto", "car": "auto", "automobile": "auto", "atms": "atm",
     "locations": "location", "employees": "employee", "students": "student", "wallets": "wallet",
+    "offices": "branch", "office": "branch", "aba": "routing", "signup": "join",
+    "introductory": "intro",
 }
 
 

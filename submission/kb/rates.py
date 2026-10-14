@@ -23,15 +23,16 @@ GENERIC = set(tokens(
     "rate apr apy interest dividend yield annual percentage month year term earn pay pays paying charge offer much "
     "highest lowest best standard balance between tier right now provide like know see account still available "
     "offered anymore today currently finance financing borrow borrowing get getting would qualify option options "
-    "ago last previous back then earlier "
+    "open opening ago last previous back then earlier end beginning start mid middle early late "
     "january february march april may june july august september october november december"))
 
 # Product words that the site writes differently in different places.
 ALIASES = {k: set(tokens(v)) for k, v in {
     "mortgage": "mortgage home conventional", "home": "home mortgage", "auto": "auto vehicle motorcycle",
-    "card": "card visa", "credit": "credit visa", "certificate": "certificate", "cd": "certificate",
+    "card": "card visa", "credit": "credit visa",
     "saving": "saving savings", "checking": "checking", "boat": "boat rv", "rv": "rv boat",
-    "share": "share certificate saving",   # credit-union jargon: "share certificate" = CD, "share savings"
+    "share": "share certificate saving",
+    "certificate": "certificate ira",      # "IRA certificate": IRA tables answer certificate questions   # credit-union jargon: "share certificate" = CD, "share savings"
 }.items()}
 ALIASES = {tokens(k)[0]: v for k, v in ALIASES.items() if tokens(k)}
 for _k in ("vehicle", "motorcycle", "truck", "suv"):
@@ -144,6 +145,8 @@ def row_ok(q: Query, table_ctx: str, label: str) -> Optional[float]:
                        ("introductory", "intro"), ("business", "business"), ("mini-max", "minimax")):
         in_row = _has(label, word)
         asked = flag in q.flags or (flag == "intro" and ("introductory" in q.flags or "balance transfer" in q.flags))
+        if flag in ("roth", "traditional") and "ira" in q.flags and not ({"roth", "traditional"} & q.flags):
+            asked = True    # "IRA certificate" covers both the Roth and the Traditional row
         if flag == "business" and q.list_intent:
             asked = True   # "what cards do you offer" covers business cards too
         if in_row and not asked:
@@ -158,8 +161,28 @@ def row_ok(q: Query, table_ctx: str, label: str) -> Optional[float]:
     return bonus
 
 
+# Product types a member may ask about that a site may simply not publish a rate for. If one is named and the
+# table doesn't mention it, the table is about something else (a 7/1 ARM question must not get the 30-year rate).
+PRODUCT_TYPES = set(tokens(
+    "adjustable arm construction student land lot commercial sba fha va usda reverse jumbo heloc equity boat rv "
+    "motorcycle atv snowmobile jet ski business ira roth traditional hsa health money market checking certificate "
+    "visa card personal auto mortgage refinance improvement launchpad bright holiday"))
+
+
+TABLE_QUALIFIERS = [(tokens(w)[0], tokens(trig)) for w, trig in (
+    ("equity", "equity heloc"), ("improvement", "improvement remodel renovation"))]
+
+
+def _wanted(q: Query, store: Store) -> list[str]:
+    """Question words that can discriminate between rate tables: words that occur in some rate table (or name a
+    product type). Filler like 'going', 'mid', 'these days' never blocks a match."""
+    vocab = store.table_vocab
+    return [t for t in q.toks if t not in GENERIC and not t.isdigit() and not re.fullmatch(r"\d+(k|m)?", t)
+            and (t in vocab or t in PRODUCT_TYPES or t in ALIASES)]
+
+
 def _coverage(q: Query, text_toks: set[str], store: Store) -> float:
-    want = [t for t in q.toks if t not in GENERIC and not t.isdigit()]
+    want = _wanted(q, store)
     if not want:
         return 0.0
     idf = store.index.idf
@@ -187,7 +210,7 @@ def _shape(label: str, heading: str = "") -> str:
     return s.strip()
 
 
-def candidate_groups(store: Store, view, q: Query, top: int = 60) -> list[Group]:
+def candidate_groups(store: Store, view, q: Query, top: int = 100) -> list[Group]:
     qt = list(q.toks)
     for t in q.toks:
         qt += sorted(ALIASES.get(t, ()))
@@ -203,6 +226,12 @@ def candidate_groups(store: Store, view, q: Query, top: int = 60) -> list[Group]
             continue
         ctx = f"{u.title} {u.heading}"
         text_toks = set(tokens(f"{ctx} {' '.join(t.header)} {' '.join(' '.join(r) for r in t.rows)}"))
+        named = [w for w in q.toks if w in PRODUCT_TYPES]
+        if any(w not in text_toks and not (ALIASES.get(w, set()) & text_toks) for w in named):
+            continue
+        # Table-level qualifiers: home-equity / home-improvement tables only answer questions that ask for them.
+        if any(w in tokens(ctx) and not (set(trig) & set(q.toks)) for w, trig in TABLE_QUALIFIERS):
+            continue
         cov = _coverage(q, text_toks, store)
         if cov < 0.5:
             continue
@@ -211,6 +240,8 @@ def candidate_groups(store: Store, view, q: Query, top: int = 60) -> list[Group]
             label = " ".join(_label_cells(t.header, r))
             if not label or not any("%" in c for c in r):
                 continue
+            if q.term_months is not None and _row_term_months(label) is None:
+                continue    # the member named a term; a row without one (savings tier, relief program) can't answer
             b = row_ok(q, ctx, label)
             if b is None:
                 continue
@@ -289,6 +320,16 @@ def _neg(rank: tuple) -> tuple:
 
 def _values(rows: list[RowHit]) -> frozenset:
     return frozenset((r.label.lower(), tuple(c for c in r.row if "%" in c)) for r in rows)
+
+
+def min_columns(header: list[str], row: list[str]) -> list[tuple[str, str]]:
+    """'Min. to Open' / 'Min. to Earn' cells, for 'what's the minimum to open X' questions."""
+    out = []
+    for i, c in enumerate(row):
+        h = header[i] if i < len(header) else ""
+        if re.search(r"min", h, re.I) and re.search(r"\d", c):
+            out.append((re.sub(r"\.\s*", " ", h).strip(), c))
+    return out
 
 
 def rate_columns(header: list[str], row: list[str], metric: Optional[str]) -> list[tuple[str, str]]:

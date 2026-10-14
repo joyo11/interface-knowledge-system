@@ -17,10 +17,16 @@ DAY = r"(?:Mon|Tues?|Wed(?:nes)?|Thu(?:rs)?|Fri|Sat(?:ur)?|Sun)[a-z]*"
 SCHED_LINE = re.compile(rf"^\s*({DAY}(?:\s*[-–]\s*{DAY})?)\s*:\s*(.+?)\s*$", re.I)
 TIME_RE = re.compile(r"\b\d{1,2}(?::\d\d)?\s*[ap]\.?m\.?|\bnoon\b|\bclosed\b", re.I)
 ADDRESS_RE = re.compile(r"\b\d{2,6} [A-Z0-9][\w .'-]*?(?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|Lane|Blvd|Pkwy|Way|Ct|Hwy|Pl|Square)\b\.?,?[^\n]{0,60}?\b\d{5}\b")
+LOOSE_ADDRESS_RE = re.compile(r"\b(located at|address is|at) \d{2,6} [A-Z0-9][\w .'-]{2,40}?\b(St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|"
+                              r"Lane|Blvd|Boulevard|Highway|Hwy|Pkwy|Parkway|Way|Ct|Court|Pl|Place|Square)\b")
 GENERIC_Q = set(tokens("what when where how who which does do is are can tell me about the a an your dupaco "
                        "information info question know want find get give"))
 KNOWN_CAPS = {"Dupaco", "I", "What", "When", "Where", "How", "Who", "Which", "Is", "Are", "Can", "Do", "Does",
-              "Visa", "APR", "APY", "IRA", "CD", "ATM", "Roth", "My", "The", "Get", "Provide", "Tell", "Please"}
+              "Visa", "APR", "APY", "IRA", "CD", "ATM", "Roth", "My", "The", "Get", "Provide", "Tell", "Please",
+              "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Weekend", "Weekday",
+              "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+              "November", "December", "Lobby", "Drive-up", "Drive", "Thru", "Hours", "Branch", "Dupaco's", "Credit",
+              "Union", "Is", "Was", "Will", "Does", "Did", "Could", "Would", "Should", "Your", "Its", "A", "An"}
 
 
 def _link(m: re.Match) -> str:
@@ -40,6 +46,8 @@ def clean(s: str) -> str:
 
 
 def sentences(text: str) -> list[str]:
+    # Table rows are answered by the rate logic (with its currency rules), never quoted as free text.
+    text = "\n".join(l for l in text.split("\n") if not l.lstrip().startswith("|"))
     return [c for c in (clean(x) for x in SENT_SPLIT.split(text)) if len(c) > 2]
 
 
@@ -112,6 +120,14 @@ class TextAnswerer:
             r = self.address(q, view)
             if r:
                 return r
+        r = self.contact_fact(q, view)
+        if r:
+            return r
+        if re.search(r"\bfees?\b|\bcharges?\b|\bcost\b|\bhow much (is|does|do|for|to)\b|\bprice\b", low) and not re.search(
+                r"\b(rate|apr|apy|interest|dividend|down payment|grant|scholarship|assistance)\b", low):
+            r = self.fee(q, view)
+            if r:
+                return r
         if re.search(r"\bhow many\b|\bnumber of\b", low):
             r = self.count(q, view)
             if r:
@@ -150,7 +166,7 @@ class TextAnswerer:
                 if cov <= 0:
                     continue
                 if atype and ANSWER_TYPES[atype].search(s):
-                    cov_bonus = 0.3
+                    cov_bonus = 0.3 + (0.3 if atype in ("id", "phone") and u.page_kind == "contact" else 0.0)
                 else:
                     cov_bonus = 0.0
                 carried = 0.8 if uid in view.carried else 1.0
@@ -158,12 +174,19 @@ class TextAnswerer:
                     carried *= 0.6
                 score = carried * (cov + cov_bonus + CTX_W * ctx_cov + PATH_W * path_cov + 0.2 * sc / top + 0.04 * u.authority
                          + 0.03 * rec)
-                out.append((score, cov, max(cov, min(1.0, cov + ctx_cov)), u, k, s))
+                grounded = not anchor or anchor in st or anchor in ctx
+                out.append((score, cov, max(cov, min(1.0, cov + ctx_cov)) if grounded else 0.0, u, k, s))
         out.sort(key=lambda x: (-x[0], x[3].uid, x[4]))
         return out
 
     def best_sentences(self, q: Query, view) -> Optional[dict]:
-        ranked = self.ranked_sentences(q, view)
+        # A key word the site never uses at all ("SWIFT code") means the site can't answer it.
+        idf = self.s.index.idf
+        unknown = [t for t in q.toks if t not in GENERIC_Q and t.isalpha() and len(t) >= 4 and t not in idf]
+        if unknown and len([t for t in q.toks if t not in GENERIC_Q]) <= 4:
+            return {"refuse": f"site never mentions {unknown}"}
+        # Sentences that don't mention the question's named entity can't answer it (joint == 0).
+        ranked = [r for r in self.ranked_sentences(q, view) if r[2] > 0]
         if not ranked:
             return None
         score, cov, joint, u, k, s = ranked[0]
@@ -194,6 +217,77 @@ class TextAnswerer:
         if head and not re.search(r"\d", head) and head.lower() not in text.lower() and len(head) < 90:
             text = f"{head}: {text}"
         return {"text": text[:700], "units": [u], "joint": joint}
+
+    # ------------------------------------------------------------------ contact facts
+    CONTACT_WORDS = set(tokens("phone number call main general contact reach address mailing mail routing aba "
+                               "what is the dupaco credit union s my for to i do can"))
+
+    def contact_fact(self, q: Query, view) -> Optional[dict]:
+        """General contact questions ('main phone number', 'mailing address', 'routing number') are answered from
+        the contact page's labelled fields. Questions about a specific team or branch go to normal retrieval."""
+        low = q.raw.lower()
+        field = ("Routing Number" if re.search(r"routing|aba", low) else
+                 "Address" if re.search(r"mailing|mail|address", low) and not re.search(r"branch|office|location", low) else
+                 "Phone" if re.search(r"phone|call|telephone", low) else None)
+        if not field or set(q.toks) - self.CONTACT_WORDS:
+            return None
+        for uid in sorted(view.units):
+            u = self.s.units[uid]
+            if u.page_kind != "contact" or u.kind != "passage":
+                continue
+            lines = [clean(l) for l in u.text.split("\n") if l.strip()]
+            for i, line in enumerate(lines):
+                m = re.match(rf"^{field}:\s*(.+)$", line, re.I)
+                if m:
+                    val = m.group(1)
+                    if field == "Address" and i + 1 < len(lines) and re.search(r"\b\d{5}\b", lines[i + 1]):
+                        val = f"{val}, {lines[i + 1]}"
+                    return {"text": f"{field}: {val}", "units": [u]}
+        return None
+
+    # ------------------------------------------------------------------ fees
+    FEE_LINE = re.compile(r"^(?P<item>[A-Za-z(][^$\n]{2,110}?)\s*[-:–]?\s*(?P<amt>\$\s?\d[\d,]*(?:\.\d\d)?\*?[^\n]{0,60}|Free\b[^\n]{0,60}|"
+                          r"\d+(?:\.\d+)?%\*?\s+of[^\n]{0,40}|Price varies)$")
+    FEE_GENERIC = set(tokens("fee fees charge charges cost costs how much is does do for a an the to of what price "
+                             "dupaco there each per item"))
+
+    def fee_lines(self, view) -> list[tuple[Unit, str, str, str]]:
+        cache = self.__dict__.setdefault("_fee_cache", {})
+        if view.snapshot_id not in cache:
+            out = []
+            for uid in sorted(view.units):
+                u = self.s.units[uid]
+                if u.kind != "passage" or u.page_kind in ("article", "listing", "calculator"):
+                    continue
+                for line in u.text.split("\n"):
+                    line = clean(line)
+                    m = self.FEE_LINE.match(line) if len(line) < 180 else None
+                    if m and not re.search(r"%\s*(apy|apr)|\bapy\b|\bapr\b", line, re.I):
+                        out.append((u, line, m.group("item").strip(" -:"), m.group("amt").strip()))
+            cache[view.snapshot_id] = out
+        return cache[view.snapshot_id]
+
+    def fee(self, q: Query, view) -> Optional[dict]:
+        """Fee questions are answered from fee-schedule lines ('Stop payment (check, ACH, & bill pay) $30.00* per item'):
+        the single best-matching line, never its neighbours (they are other fees)."""
+        idf = self.s.index.idf
+        want = [t for t in q.toks if t not in self.FEE_GENERIC]
+        if not want:
+            return None
+        mass = sum(idf.get(t, 1.0) for t in want)
+        best = None
+        for u, line, item, amt in self.fee_lines(view):
+            it = set(tokens(item))
+            cov = sum(idf.get(t, 1.0) for t in want if t in it) / mass
+            extra = len(it - set(want))          # prefer the most specific item name
+            key = (cov, -extra, u.authority, -u.uid)
+            if cov >= 0.6 and (best is None or key > best[0]):
+                best = (key, u, item, amt)
+        if not best:
+            return None
+        _, u, item, amt = best
+        amt = re.sub(r"\*", "", amt).strip()
+        return {"text": f"{item}: {amt}.", "units": [u]}
 
     # ------------------------------------------------------------------ hours
     def schedules(self, view) -> list[tuple[Unit, str, list[tuple[str, str]]]]:
@@ -267,15 +361,26 @@ class TextAnswerer:
         if not place:
             return None
         pl = place.lower()
-        order = sorted(view.units, key=lambda i: (self.s.units[i].page_kind != "contact", -self.s.units[i].authority, i))
-        for uid in order:
+        # 1. The branch locator: an address line under a "Dupaco Branch" entry (not an ATM / shared branch).
+        for uid in sorted(view.units, key=lambda i: (self.s.units[i].page_kind != "contact", i)):
+            u = self.s.units[uid]
+            if u.kind != "passage" or u.page_kind != "contact" or pl not in u.text.lower():
+                continue
+            lines = [clean(l) for l in u.text.split("\n")]
+            for i, line in enumerate(lines):
+                if pl in line.lower() and ADDRESS_RE.search(line):
+                    label = " ".join(lines[max(0, i - 3):i]).lower()
+                    if "branch" in label and "atm" not in label and "shared" not in label:
+                        return {"text": f"The {place} branch is at {ADDRESS_RE.search(line).group(0)}.", "units": [u]}
+        # 2. A sentence that names the place as a Dupaco branch and gives a street address.
+        for uid in sorted(view.units):
             u = self.s.units[uid]
             if u.kind != "passage" or pl not in u.text.lower():
                 continue
-            for line in u.text.split("\n"):
-                if pl in line.lower() and ADDRESS_RE.search(line):
-                    return {"text": f"The {place} branch is at {clean(ADDRESS_RE.search(line).group(0))}.",
-                            "units": [u]}
+            for sent in sentences(u.text):
+                low = sent.lower()
+                if pl in low and "branch" in low and (ADDRESS_RE.search(sent) or LOOSE_ADDRESS_RE.search(sent)):
+                    return {"text": sent, "units": [u]}
         return {"refuse": f"no address for {place}"}
 
     # ------------------------------------------------------------------ counts

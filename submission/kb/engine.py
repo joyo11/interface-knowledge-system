@@ -6,7 +6,7 @@ from datetime import date
 from typing import Optional
 
 from .qparse import Query, parse_question
-from .rates import candidate_groups, rate_columns
+from .rates import candidate_groups, min_columns, rate_columns
 from .store import Store, Unit
 from .text import TextAnswerer
 
@@ -29,7 +29,8 @@ class Engine:
             if r:
                 return r
         availability = bool(re.search(r"\b(still|available|offer|discontinued|anymore|any more)\b", q.raw.lower()))
-        if q.rate_intent or (availability and q.term_months):
+        min_q = bool(re.search(r"\bminimum\b|\bmin\.? to\b", q.raw.lower()))
+        if q.rate_intent or (availability and q.term_months) or min_q:
             r = self._rates(q, view)
             if r:
                 return r
@@ -56,7 +57,13 @@ class Engine:
 
     # ------------------------------------------------------------------ rates
     def _is_specific_rate_question(self, q: Query) -> bool:
-        return bool(re.search(r"\b(rate|apr|apy|interest)\b", q.raw.lower()))
+        """Questions shaped like a rate lookup. If no current rate table answers them, the honest answer is
+        'not listed' (free text would only dump neighbouring tiers or other products)."""
+        low = q.raw.lower()
+        if re.search(r"\b(rate|rates|apr|apy|interest|dividend|yield)\b", low):
+            return True
+        return bool(re.search(r"\b(pay|pays|paying|earn|earns|earning)\b", low) and (
+            _specific(q) or re.search(r"\b(certificate|cd|savings|special|account|ira|money market|checking)\b", low)))
 
     def _rates(self, q: Query, view) -> Optional[dict]:
         groups = candidate_groups(self.s, view, q)
@@ -71,11 +78,16 @@ class Engine:
             rows = sorted(g.rows, key=lambda r: -r.score)
             top = rows[0].score
             rows = [r for r in rows if r.score >= top - 0.01] if not q.list_intent and _specific(q) else rows
+            if q.amount is not None:
+                rows = _tightest_tiers(rows)
             rows = sorted(rows, key=lambda r: g.winner.table.rows.index(r.row))[:8]
             product = _product_name(g.winner)
             parts = []
+            want_min = bool(re.search(r"\bminimum\b|\bmin\.?\b|\bhow much (do i need|to open)\b", q.raw.lower()))
             for r in rows:
                 cols = rate_columns(g.winner.table.header, r.row, q.metric)
+                if want_min:
+                    cols = min_columns(g.winner.table.header, r.row) or cols
                 if not cols:
                     continue
                 vals = ", ".join(f"{v} {n}".strip() if n and n.lower() not in v.lower() else v for n, v in cols)
@@ -139,6 +151,22 @@ class Engine:
 
     def _refuse(self, why: str) -> dict:
         return {"text": REFUSAL, "sources": [], "confident": False, "note": why}
+
+
+def _tightest_tiers(rows):
+    """'$300,000 or less' and '$200,000 or less' both contain $150,000; the narrowest tier is the one that applies."""
+    from .rates import _row_amount_range, _shape
+    best: dict[str, tuple] = {}
+    for r in rows:
+        rng = _row_amount_range(r.label.lower())
+        key = re.sub(r"\$[#,]+[^ ]*|or less|or more|\+", "", _shape(r.label))
+        span = (rng.hi - rng.lo) if rng else float("inf")
+        if key not in best or span < best[key][0]:
+            best[key] = (span, [r])
+        elif span == best[key][0]:
+            best[key][1].append(r)
+    keep = {id(r) for _, rs in best.values() for r in rs}
+    return [r for r in rows if id(r) in keep]
 
 
 def _specific(q: Query) -> bool:

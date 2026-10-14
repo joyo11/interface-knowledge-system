@@ -10,7 +10,6 @@ from typing import Optional
 from .parse import MONTHS
 from .search import tokens
 
-RATE_WORDS = set(tokens("rate apr apy interest dividend yield percentage earn pay pays paying"))
 LINK_WORDS = re.compile(r"\b(link|url|web ?page|website|web address)\b", re.I)
 
 
@@ -43,7 +42,7 @@ class Query:
 
 
 _TERM_RE = re.compile(r"\b(\d{1,3})\s*[- ]?\s*(months?|mos?|years?|yrs?)\b", re.I)
-_YEAR_RE = re.compile(r"\b(19[5-9]\d|20[0-4]\d)\b")
+_YEAR_RE = re.compile(r"\b(19[5-9]\d|20\d\d)\b")
 _MONEY_RE = re.compile(r"\$\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\s*(k|thousand|million|m)?\b", re.I)
 _BARE_K_RE = re.compile(r"\b(\d{1,4})\s?(k|thousand)\b", re.I)
 
@@ -66,8 +65,20 @@ NUMBER_WORDS = {
 _NUMWORD_RE = re.compile(r"\b(" + "|".join(sorted(NUMBER_WORDS, key=len, reverse=True)) + r")(?=[\s-]+(?:months?|years?|yrs?|mos?)\b)", re.I)
 
 
+# Member phrasings mapped onto the site's words before parsing.
+PHRASES = [
+    (r"\bsign(?:ing)? up\b|\bbecome a member\b|\bapply for membership\b|\bopen a membership\b", "join"),
+    (r"\bcd'?s?\b", "certificate"),
+    (r"\bwhat'?s\b|\bwhats\b", "what is"),
+    (r"\bthese days\b|\bright now\b|\bat the moment\b|\bgoing rate\b", "current rate"),
+    (r"\bhome loan\b", "mortgage home loan"),
+]
+
+
 def parse_question(q: str, as_of: Optional[str] = None) -> Query:
-    q = _NUMWORD_RE.sub(lambda m: str(NUMBER_WORDS[m.group(1).lower()]), q)
+    q = _NUMWORD_RE.sub(lambda m: str(NUMBER_WORDS[m.group(1).lower()]), str(q or ""))
+    for pat, rep in PHRASES:
+        q = re.sub(pat, rep, q, flags=re.I)
     low = q.lower().replace("–", "-").replace("—", "-")
     qu = Query(raw=q, toks=tokens(q))
 
@@ -92,23 +103,27 @@ def parse_question(q: str, as_of: Optional[str] = None) -> Query:
             qu.amount = Range(amounts[0], amounts[0])
         qu.flags.add("amount")
 
-    if re.search(r"\bapy\b|annual percentage yield", low):
-        qu.metric = "apy"
-    elif re.search(r"\bapr\b|annual percentage rate", low):
-        qu.metric = "apr"
-    elif re.search(r"\bdividend", low):
-        qu.metric = "dividend"
+    asked = [m for m, pat in (("apy", r"\bapy\b|annual percentage yield"), ("apr", r"\bapr\b|annual percentage rate"),
+                              ("dividend", r"\bdividend"), ("rate", r"\b(interest )?rate\b(?! (sheet|page))"))
+             if re.search(pat, low)]
+    # "rate and APR" asks for both columns; a single named metric narrows the answer.
+    named = [m for m in asked if m != "rate"]
+    qu.metric = named[0] if len(named) == 1 and len(asked) == 1 else None
 
-    qset = set(qu.toks)
-    qu.rate_intent = bool(qset & RATE_WORDS) or bool(re.search(r"\b(rates?|apr|apy)\b", low))
+    # Rate questions name a rate, or ask what a deposit product pays/earns ("what does the 17-month special pay").
+    qu.rate_intent = bool(re.search(r"\b(rates?|aprs?|apys?|interest|dividends?|yields?)\b", low)) or bool(
+        re.search(r"\b(pay|pays|paying|earn|earns|earning)\b", low) and (
+            qu.term_months or re.search(r"\b(certificate|savings|special|ira|money market|checking|account)\b", low)))
     qu.link_intent = bool(LINK_WORDS.search(low))
     qu.list_intent = bool(re.search(r"\b(what|which)\b.*\b(do you offer|are available|options|types|kinds)\b", low)) or bool(
         re.search(r"\b(all|list|every|each)\b", low)) or bool(re.search(r"\brates\b|\bcards\b|\baccounts\b", low))
 
     for word in ("jumbo", "special", "refinance", "refi", "business", "roth", "traditional", "ira", "intro",
                  "introductory", "balance transfer", "purchase", "variable", "fixed", "heloc", "student",
-                 "personal", "rewards", "platinum"):
-        if re.search(rf"\b{word}", low):
+                 "personal", "rewards", "platinum", "equity", "improvement"):
+        m = re.search(rf"\b{word}", low)
+        if m and not re.search(r"\b(not|non|no|without|excluding|except)\b[\s-]+(?:the |a |an )?$", low[:m.start()]) \
+                and not low[max(0, m.start() - 4):m.start()].endswith("non-"):
             qu.flags.add("refinance" if word == "refi" else word)
 
     qu.as_of_text = date_in_question(low)
@@ -116,14 +131,34 @@ def parse_question(q: str, as_of: Optional[str] = None) -> Query:
 
 
 def date_in_question(low: str) -> Optional[str]:
-    """'as of May 2026' -> last day of May 2026; 'in June 2026' likewise. Only explicit month+year."""
-    m = re.search(r"\b(as of|in|during|on|back in)\s+(january|february|march|april|may|june|july|august|september|"
-                  r"october|november|december)(?:\s+(\d{1,2}))?,?\s+(20\d\d)\b", low)
+    """Dates written in the question: 'as of May 2026' (end of month), 'early/mid/end of June 2026',
+    'on June 1, 2026', '5/15/2026', '2026-05-15'."""
+    m = re.search(r"\b(20\d\d)-(\d{1,2})-(\d{1,2})\b", low)
+    if m:
+        return _iso(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    m = re.search(r"\b(\d{1,2})/(\d{1,2})/(20\d\d)\b", low)
+    if m:
+        return _iso(int(m.group(3)), int(m.group(1)), int(m.group(2)))
+    mon_re = "(january|february|march|april|may|june|july|august|september|october|november|december)"
+    m = re.search(r"\b(?:(early|beginning of|start of|mid|middle of|late|end of)[\s-]+)?" + mon_re +
+                  r"(?:\s+(\d{1,2})(?:st|nd|rd|th)?)?,?\s+(20\d\d)\b", low)
     if not m:
         return None
-    mon, day, year = MONTHS[m.group(2)], m.group(3), int(m.group(4))
-    d = int(day) if day else calendar.monthrange(year, mon)[1]
+    when, mon, day, year = m.group(1), MONTHS[m.group(2)], m.group(3), int(m.group(4))
+    last = calendar.monthrange(year, mon)[1]
+    if day:
+        d = int(day)
+    elif when in ("early", "beginning of", "start of"):
+        d = 5
+    elif when in ("mid", "middle of"):
+        d = 15
+    else:
+        d = last
+    return _iso(year, mon, d)
+
+
+def _iso(y: int, m: int, d: int) -> Optional[str]:
     try:
-        return date(year, mon, d).isoformat()
+        return date(y, m, d).isoformat()
     except ValueError:
         return None

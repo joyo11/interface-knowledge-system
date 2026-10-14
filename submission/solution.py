@@ -34,7 +34,10 @@ class KnowledgeSystem:
         self._conflicts = None
 
     def answer(self, question: str, as_of=None) -> Answer:
-        key = (" ".join(question.lower().split()), as_of)
+        if not self.store.views:
+            return Answer(text="I don't know: no website snapshots have been loaded yet.", confident=False)
+        as_of = str(as_of) if as_of is not None else None
+        key = (" ".join(str(question or "").lower().split()), as_of)
         if key not in self._cache:
             r = self.engine.answer(question, as_of)
             self._cache[key] = r
@@ -48,6 +51,8 @@ class KnowledgeSystem:
         )
 
     def conflicts(self) -> list[Conflict]:
+        if not self.store.views:
+            return []
         if self._conflicts is None:
             self._conflicts = [
                 Conflict(topic=c["topic"], values=c["values"],

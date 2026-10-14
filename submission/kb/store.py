@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Optional
@@ -39,6 +40,15 @@ class SnapshotView:
     carried: set[int] = field(default_factory=set)
 
 
+def is_rate_table(u: "Unit") -> bool:
+    """A table that publishes rates: some cell holds a percentage and the header/heading names a rate."""
+    t = u.table
+    if not any("%" in c for r in t.rows for c in r):
+        return False
+    names = " ".join(t.header) + " " + u.heading + (" " + t.rows[0][0] if t.prose else "")
+    return re.search(r"rate|apr|apy|yield|dividend", names, re.I) is not None
+
+
 def table_text(t: Table) -> str:
     head = " | ".join(t.header)
     rows = "\n".join(" | ".join(r) for r in t.rows)
@@ -54,6 +64,7 @@ class Store:
         self.views: list[SnapshotView] = []
         self.index = BM25()
         self._dirty = False
+        self.table_vocab: set[str] = set()
 
     # ------------------------------------------------------------------ ingest
     def add_snapshot(self, snapshot) -> SnapshotView:
@@ -116,13 +127,18 @@ class Store:
     def finalize(self) -> None:
         if self._dirty:
             self.index.finalize()
+            # Words that occur in some rate table: only these can tell rate tables apart.
+            self.table_vocab = set()
+            for u in self.units:
+                if u.kind == "table":
+                    self.table_vocab.update(tokens(f"{u.title} {u.heading} {u.text}"))
             self._dirty = False
 
     def table_units(self, view: SnapshotView) -> set[int]:
         key = view.snapshot_id
         cache = self.__dict__.setdefault("_table_cache", {})
         if key not in cache:
-            cache[key] = {u for u in view.units if self.units[u].kind == "table"}
+            cache[key] = {u for u in view.units if self.units[u].kind == "table" and is_rate_table(self.units[u])}
         return cache[key]
 
     # ------------------------------------------------------------------ views
@@ -131,7 +147,7 @@ class Store:
         if not as_of:
             return self.views[-1]
         try:
-            d = date.fromisoformat(str(as_of)[:10])
+            d = date.fromisoformat(str(as_of).strip()[:10])
         except ValueError:
             return self.views[-1]
         eligible = [v for v in self.views if v.taken_on <= d]
