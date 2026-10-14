@@ -91,7 +91,10 @@ def parse_question(q: str, as_of: Optional[str] = None) -> Query:
     if re.search(r"\b(model|vehicle|auto|car|truck|motorcycle|suv|boat|rv|atv)\b", low):
         for y in _YEAR_RE.findall(low):
             # a year that is not the "as of" date of the question
-            if not re.search(rf"(as of|in|during|on)\s+(\w+\s+)?{y}", low):
+            # "as of May 2026" / "in 2026" is a date; "a 2025 model-year vehicle" is a model year.
+            is_date = re.search(rf"(as of|in|during|since|before|after)\s+((january|february|march|april|may|june|july|"
+                                rf"august|september|october|november|december)\s+(\d{{1,2}},?\s+)?)?{y}", low)
+            if not is_date or re.search(rf"{y}\s*-?\s*model|model[\s-]+year\s+{y}", low):
                 qu.model_year = int(y)
 
     amounts = [money_value(n, s) for n, s in _MONEY_RE.findall(q)]
