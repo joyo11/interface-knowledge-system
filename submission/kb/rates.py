@@ -23,6 +23,7 @@ GENERIC = set(tokens(
     "rate apr apy interest dividend yield annual percentage month year term earn pay pays paying charge offer much "
     "highest lowest best standard balance between tier right now provide like know see account still available "
     "offered anymore today currently finance financing borrow borrowing get getting would qualify option options "
+    "list all every each top highest lowest need needed think thinking want looking plan planning avoid show "
     "open opening ago last previous back then earlier end beginning start mid middle early late "
     "january february march april may june july august september october november december"))
 
@@ -122,10 +123,11 @@ def row_ok(q: Query, table_ctx: str, label: str) -> Optional[float]:
     """None = row contradicts the question; otherwise a small bonus for each qualifier it satisfies."""
     bonus = 0.0
     full = f"{table_ctx} {label}"
-    if q.term_months is not None:
+    if q.term_months is not None or len(q.terms) > 1:
         rt = _row_term_months(label)
+        wanted = {q.term_months} if q.term_months is not None else q.terms
         if rt is not None:
-            if rt != q.term_months:
+            if rt not in wanted:
                 return None
             bonus += 2
     if q.model_year is not None:
@@ -144,6 +146,8 @@ def row_ok(q: Query, table_ctx: str, label: str) -> Optional[float]:
     for word, flag in (("jumbo", "jumbo"), ("refinanc", "refinance"), ("roth", "roth"), ("traditional", "traditional"),
                        ("introductory", "intro"), ("business", "business"), ("mini-max", "minimax")):
         in_row = _has(label, word)
+        if flag == "jumbo" and q.list_intent and re.search(r"\b(all|every|list)\b", q.raw.lower()):
+            continue    # "all special certificate rates" includes the jumbo tier
         asked = flag in q.flags or (flag == "intro" and ("introductory" in q.flags or "balance transfer" in q.flags))
         if flag in ("roth", "traditional") and "ira" in q.flags and not ({"roth", "traditional"} & q.flags):
             asked = True    # "IRA certificate" covers both the Roth and the Traditional row
@@ -166,7 +170,7 @@ def row_ok(q: Query, table_ctx: str, label: str) -> Optional[float]:
 PRODUCT_TYPES = set(tokens(
     "adjustable arm construction student land lot commercial sba fha va usda reverse jumbo heloc equity boat rv "
     "motorcycle atv snowmobile jet ski business ira roth traditional hsa health money market checking certificate "
-    "visa card personal auto mortgage refinance improvement launchpad bright holiday"))
+    "visa card personal auto mortgage refinance improvement launchpad bright holiday loan"))
 
 
 TABLE_QUALIFIERS = [(tokens(w)[0], tokens(trig)) for w, trig in (
@@ -227,7 +231,10 @@ def candidate_groups(store: Store, view, q: Query, top: int = 100) -> list[Group
         ctx = f"{u.title} {u.heading}"
         text_toks = set(tokens(f"{ctx} {' '.join(t.header)} {' '.join(' '.join(r) for r in t.rows)}"))
         named = [w for w in q.toks if w in PRODUCT_TYPES]
-        if any(w not in text_toks and not (ALIASES.get(w, set()) & text_toks) for w in named):
+        # Product types must be named by the table itself (heading, header, rows), not the page title:
+        # a "Business Loan & Deposit Rates" page also holds savings tables.
+        own = set(tokens(f"{u.heading} {' '.join(t.header)} {' '.join(' '.join(r) for r in t.rows)}"))
+        if any(w not in own and not (ALIASES.get(w, set()) & own) for w in named):
             continue
         # Table-level qualifiers: home-equity / home-improvement tables only answer questions that ask for them.
         if any(w in tokens(ctx) and not (set(trig) & set(q.toks)) for w, trig in TABLE_QUALIFIERS):
@@ -240,7 +247,7 @@ def candidate_groups(store: Store, view, q: Query, top: int = 100) -> list[Group
             label = " ".join(_label_cells(t.header, r))
             if not label or not any("%" in c for c in r):
                 continue
-            if q.term_months is not None and _row_term_months(label) is None:
+            if (q.term_months is not None or len(q.terms) > 1) and _row_term_months(label) is None:
                 continue    # the member named a term; a row without one (savings tier, relief program) can't answer
             b = row_ok(q, ctx, label)
             if b is None:
@@ -251,6 +258,11 @@ def candidate_groups(store: Store, view, q: Query, top: int = 100) -> list[Group
             scored.append((cov, u, rows))
     if not scored:
         return []
+    if ("intro" in q.flags or "introductory" in q.flags or re.search(r"\bpromo(tional)?\b", q.raw.lower())):
+        promo = [x for x in scored if re.search(r"\bintro|promo", x[1].heading + " " + " ".join(x[1].table.header) + " " +
+                                                " ".join(r.label for r in x[2]), re.I)]
+        if promo:
+            scored = promo      # the member asked for the introductory/promotional rate
     fresh = [x for x in scored if x[1].uid not in view.carried]
     if fresh:
         scored = fresh          # pages missing from this download only answer when nothing current does
@@ -332,7 +344,18 @@ def min_columns(header: list[str], row: list[str]) -> list[tuple[str, str]]:
     return out
 
 
-def rate_columns(header: list[str], row: list[str], metric: Optional[str]) -> list[tuple[str, str]]:
+def rate_columns(header: list[str], row: list[str], metric: Optional[str], intro: Optional[bool] = None) -> list[tuple[str, str]]:
+    """Rate cells of a row, named by their column. intro=True keeps introductory columns, False drops them
+    (when a table has both); None keeps everything."""
+    cols = _rate_columns(header, row, metric)
+    named = [(i, c) for i, c in enumerate(cols)]
+    has_intro = any(n.startswith("introductory") for n, _ in cols)
+    if has_intro and intro is not None:
+        cols = [c for _, c in named if c[0].startswith("introductory") == intro] or cols
+    return cols
+
+
+def _rate_columns(header: list[str], row: list[str], metric: Optional[str]) -> list[tuple[str, str]]:
     out = []
     for i, c in enumerate(row):
         h = header[i] if i < len(header) else ""
@@ -343,6 +366,9 @@ def rate_columns(header: list[str], row: list[str], metric: Optional[str]) -> li
             continue
         name = ("APY" if "yield" in hl or "apy" in hl else "dividend rate" if "dividend" in hl else
                 "APR" if "apr" in hl or "annual percentage rate" in hl else "rate" if "rate" in hl else "")
+        # "Dividend Rate for 1st 6 Months" / "Intro APY" are introductory; "APY After Promotional Period" is not.
+        if re.search(r"\bintro|\b(1st|first) \d+ months?|promotional rate", hl) and not re.search(r"\bafter\b", hl):
+            name = f"introductory {name}".strip()
         out.append((name, c))
     if metric and len(out) > 1:
         pick = [x for x in out if x[0].lower().startswith(metric)]

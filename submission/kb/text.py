@@ -38,8 +38,12 @@ def _link(m: re.Match) -> str:
     return f"{text} ({url})" if text else url
 
 
+PHONE_RE = re.compile(r"(?<![\d.])(?:1[.\-\s])?\(?(\d{3})\)?[.\-\s](\d{3})[.\-](\d{4})(?![\d])")
+
+
 def clean(s: str) -> str:
     s = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", s)
+    s = PHONE_RE.sub(lambda m: f"{m.group(1)}-{m.group(2)}-{m.group(3)}", s)    # 1.800.383.1700 -> 800-383-1700
     s = re.sub(r"\[([^\]]*)\]\(([^)\s]+)[^)]*\)", _link, s)
     s = re.sub(r"\*\*|__|^#+\s*|^[-*]\s+", "", s.strip())
     return re.sub(r"\s+", " ", s).strip()
@@ -83,7 +87,9 @@ ANSWER_TYPES = {
 
 def answer_type(q: str) -> Optional[str]:
     low = q.lower()
-    if re.search(r"\b(routing|account|nmls|phone|fax|tax id) number\b|\brouting\b", low):
+    if re.search(r"\bphone\b|\bcall\b|\btelephone\b", low) and not re.search(r"routing|account number", low):
+        return "phone"
+    if re.search(r"\b(routing|account|nmls|fax|tax id) number\b|\brouting\b", low):
         return "id"
     if re.search(r"^when\b|\bwhat (date|day|year)\b|\bstill open\b|\bdeadline\b|\bclosing date\b", low):
         return "date"
@@ -115,7 +121,7 @@ class TextAnswerer:
         if hours_q and not re.search(
                 r"volunteer|hours of|work hours", low):
             return self.hours(q, view)
-        if re.search(r"\baddress\b|\bwhere(?: is|'s|’s| can i find)\b|\blocated\b|\blocation of\b", low) and re.search(
+        if re.search(r"\baddress(es)?\b|\bwhere(?: is|'s|’s| are| can i find)\b|\blocated\b|\blocations? of\b", low) and re.search(
                 r"branch|office|location", low):
             r = self.address(q, view)
             if r:
@@ -136,6 +142,8 @@ class TextAnswerer:
 
     # ------------------------------------------------------------------ sentence retrieval
     def ranked_sentences(self, q: Query, view, top_units: int = 40, kinds=("passage",)):
+        if answer_type(q.raw) in ("phone", "id"):
+            top_units = max(top_units, 150)     # numbers often sit in long footnotes that rank low as passages
         hits = self.s.index.search(q.toks, top=top_units, allow=view.units)
         if not hits:
             return []
@@ -144,6 +152,10 @@ class TextAnswerer:
         qmass = sum(idf.get(t, 1.0) for t in qset) or 1.0
         top = hits[0][0] or 1.0
         atype = answer_type(q.raw)
+        if atype in ("phone", "id"):
+            # "phone number", "call": the answer type itself (any sentence with a number satisfies it), not the topic
+            qset = (qset - set(tokens("phone number call telephone reach contact dial ring"))) or qset
+            qmass = sum(idf.get(t, 1.0) for t in qset) or 1.0
         # Anchor: the question's rarest word (usually a name: Home$tart, Hy-Vee, Galena, Forbes) must appear in
         # the sentence or its page title/heading, otherwise the sentence is about something else.
         rare = sorted(qset, key=lambda t: -idf.get(t, 0))
@@ -183,7 +195,7 @@ class TextAnswerer:
         # A key word the site never uses at all ("SWIFT code") means the site can't answer it.
         idf = self.s.index.idf
         unknown = [t for t in q.toks if t not in GENERIC_Q and t.isalpha() and len(t) >= 4 and t not in idf]
-        if unknown and len([t for t in q.toks if t not in GENERIC_Q]) <= 4:
+        if unknown and len([t for t in q.toks if t not in GENERIC_Q]) <= 6:
             return {"refuse": f"site never mentions {unknown}"}
         # Sentences that don't mention the question's named entity can't answer it (joint == 0).
         ranked = [r for r in self.ranked_sentences(q, view) if r[2] > 0]
@@ -192,6 +204,15 @@ class TextAnswerer:
         score, cov, joint, u, k, s = ranked[0]
         if joint < 0.3:
             return None
+        # What's true now: among near-equal candidates, prefer the freshest page (undated product pages are
+        # current; an article counts from its publish date).
+        def fresh(r):
+            return r[3].published.toordinal() if r[3].published else view.taken_on.toordinal()
+        near = [r for r in ranked if r[0] >= 0.85 * score and r[2] >= 0.3]
+        if near:
+            top = max(near, key=lambda r: (fresh(r), r[0]))
+            if fresh(top) - fresh(ranked[0]) > 180:
+                score, cov, joint, u, k, s = top
         page = [r for r in ranked if r[3].url == u.url]
         atype = answer_type(q.raw)
         if atype and not ANSWER_TYPES[atype].search(s):
@@ -226,10 +247,14 @@ class TextAnswerer:
         """General contact questions ('main phone number', 'mailing address', 'routing number') are answered from
         the contact page's labelled fields. Questions about a specific team or branch go to normal retrieval."""
         low = q.raw.lower()
-        field = ("Routing Number" if re.search(r"routing|aba", low) else
-                 "Address" if re.search(r"mailing|mail|address", low) and not re.search(r"branch|office|location", low) else
-                 "Phone" if re.search(r"phone|call|telephone", low) else None)
-        if not field or set(q.toks) - self.CONTACT_WORDS:
+        team = re.search(r"\b(mortgage|card|visa|insurance|business|loan|lending|team|department|investment|"
+                         r"financial services|wealth|branch|office|fraud|lost|stolen|pin)\b", low)
+        field = ("Routing Number" if re.search(r"routing|\baba\b", low) else
+                 "Phone" if re.search(r"phone|\bcall\b|telephone", low) and not team else
+                 "Address" if re.search(r"mailing|\bmail\b|address", low) and not re.search(r"branch|office|location|change|update", low) else None)
+        if not field:
+            return None
+        if field == "Address" and set(q.toks) - self.CONTACT_WORDS:
             return None
         for uid in sorted(view.units):
             u = self.s.units[uid]
@@ -283,6 +308,18 @@ class TextAnswerer:
             key = (cov, -extra, u.authority, -u.uid)
             if cov >= 0.6 and (best is None or key > best[0]):
                 best = (key, u, item, amt)
+        multi = re.search(r"\bfees\b|,|\band\b", q.raw.lower())
+        if multi:
+            # "wire fees (incoming, domestic and international)": every line naming the main thing asked about
+            head = max(want, key=lambda t: sum(t in tokens(it) for _, _, it, _ in self.fee_lines(view)) * idf.get(t, 1.0))
+            lines = []
+            for u, line, item, amt in self.fee_lines(view):
+                if head in tokens(item) and (best is None or u.url == best[1].url):
+                    lines.append(f"{item}: {re.sub(r'[*]', '', amt).strip()}")
+            lines = list(dict.fromkeys(lines))
+            if 1 < len(lines) <= 6:
+                src = best[1] if best else next(u for u, _, it, _ in self.fee_lines(view) if head in tokens(it))
+                return {"text": "; ".join(lines) + ".", "units": [src]}
         if not best:
             return None
         _, u, item, amt = best
@@ -360,18 +397,32 @@ class TextAnswerer:
         place = named_place(q)
         if not place:
             return None
+        for cand in [place] + (place.split() if " " in place else []):
+            r = self._address_for(cand, q, view)
+            if r and "refuse" not in r:
+                return r
+        return {"refuse": f"no address for {place}"}
+
+    def _address_for(self, place: str, q: Query, view) -> Optional[dict]:
         pl = place.lower()
         # 1. The branch locator: an address line under a "Dupaco Branch" entry (not an ATM / shared branch).
-        for uid in sorted(view.units, key=lambda i: (self.s.units[i].page_kind != "contact", i)):
-            u = self.s.units[uid]
-            if u.kind != "passage" or u.page_kind != "contact" or pl not in u.text.lower():
-                continue
-            lines = [clean(l) for l in u.text.split("\n")]
-            for i, line in enumerate(lines):
-                if pl in line.lower() and ADDRESS_RE.search(line):
-                    label = " ".join(lines[max(0, i - 3):i]).lower()
-                    if "branch" in label and "atm" not in label and "shared" not in label:
-                        return {"text": f"The {place} branch is at {ADDRESS_RE.search(line).group(0)}.", "units": [u]}
+        #    Read the whole contact page in order, since an entry can straddle two passages.
+        contact = [self.s.units[i] for i in sorted(view.units)
+                   if self.s.units[i].kind == "passage" and self.s.units[i].page_kind == "contact"]
+        lines = [clean(l) for u in contact for l in u.text.split("\n") if l.strip()]
+        if re.search(r"\bbranches\b|\blocations\b", q.raw.lower()):
+            # "branches in Dubuque": every branch entry whose address is in that town
+            found = [ADDRESS_RE.search(l).group(0) for i, l in enumerate(lines)
+                     if i and pl in l.lower() and ADDRESS_RE.search(l) and "branch" in lines[i - 1].lower()
+                     and "atm" not in lines[i - 1].lower() and "shared" not in lines[i - 1].lower()]
+            found = list(dict.fromkeys(found))
+            if found:
+                return {"text": f"Dupaco branches in {place}: " + "; ".join(found) + ".", "units": contact[:1]}
+        for i, line in enumerate(lines):
+            if pl in line.lower() and ADDRESS_RE.search(line):
+                label = lines[i - 1].lower() if i else ""     # the entry type sits right above its address
+                if "branch" in label and "atm" not in label and "shared" not in label:
+                    return {"text": f"The {place} branch is at {ADDRESS_RE.search(line).group(0)}.", "units": contact[:1]}
         # 2. A sentence that names the place as a Dupaco branch and gives a street address.
         for uid in sorted(view.units):
             u = self.s.units[uid]
@@ -387,7 +438,9 @@ class TextAnswerer:
     def count(self, q: Query, view) -> Optional[dict]:
         """'How many X': the same count is restated in many dated articles; the newest one wins."""
         ranked = self.ranked_sentences(q, view, top_units=200)
-        nouns = [t for t in q.toks if t not in GENERIC_Q and not t.isdigit() and t not in ("many", "number")]
+        m = re.search(r"\bhow many (\w+)|\bnumber of (\w+)", q.raw.lower())
+        counted = tokens(m.group(1) or m.group(2)) if m else []
+        nouns = counted or [t for t in q.toks if t not in GENERIC_Q and not t.isdigit()]
         cands = []
         for score, cov, joint, u, k, s in ranked:
             st = tokens(s)

@@ -9,7 +9,7 @@ STOP = set("""
 a an and are as at be by can do does for from has have how i in is it its me my of on or our please
 the their there this to was what when where which who why will with you your yours we us dupaco
 tell give get know want would like could should any much many current currently right now today
-if over also just still
+if over also just still i'm im i've ive i'd it's its that's let's
 """.split())
 
 TOKEN_RE = re.compile(r"[a-z0-9]+(?:[.'][a-z0-9]+)*")

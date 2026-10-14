@@ -128,10 +128,12 @@ class Store:
         if self._dirty:
             self.index.finalize()
             # Words that occur in some rate table: only these can tell rate tables apart.
+            # Only rate tables, and only their names and row labels (not footnotes, forms or calculators).
             self.table_vocab = set()
             for u in self.units:
-                if u.kind == "table":
-                    self.table_vocab.update(tokens(f"{u.title} {u.heading} {u.text}"))
+                if u.kind == "table" and is_rate_table(u):
+                    labels = " ".join(c for r in u.table.rows for c in r if "%" not in c and not re.search(r"\d{3}", c))
+                    self.table_vocab.update(tokens(f"{u.heading} {labels}"))
             self._dirty = False
 
     def table_units(self, view: SnapshotView) -> set[int]:

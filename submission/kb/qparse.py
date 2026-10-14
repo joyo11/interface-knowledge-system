@@ -31,6 +31,8 @@ class Query:
     toks: list[str]
     term_months: Optional[int] = None          # "60-month", "5-year" -> 60
     term_raw: Optional[tuple[int, str]] = None  # (5, "year") as written
+    terms: set[int] = field(default_factory=set)  # "30, 20 and 15 year" -> {360, 240, 180}
+    change_intent: bool = False                # "what was it before and what is it now?"
     model_year: Optional[int] = None
     amount: Optional[Range] = None             # balance / loan amount the member mentions
     metric: Optional[str] = None               # "apr" | "apy" | "dividend" | None
@@ -87,8 +89,22 @@ def parse_question(q: str, as_of: Optional[str] = None) -> Query:
         n, unit = int(m.group(1)), m.group(2).lower()
         qu.term_raw = (n, "year" if unit.startswith(("y",)) else "month")
         qu.term_months = n * 12 if qu.term_raw[1] == "year" else n
+        mult = 12 if qu.term_raw[1] == "year" else 1
+        # "30, 20 and 15 year": every number in the list shares the unit
+        lst = re.search(r"((?:\d{1,3}\s*(?:,|and|or|&)\s*)+)\d{1,3}\s*[- ]?\s*" + re.escape(m.group(2)), low)
+        if lst:
+            qu.terms = {int(x) * mult for x in re.findall(r"\d{1,3}", lst.group(0))}
+            if len(qu.terms) > 1:
+                qu.term_months = None
+                qu.list_intent = True
+    qu.change_intent = bool(re.search(r"\b(before and|used to be|previous(ly)?|changed?|was it before|old rate|"
+                                      r"what was it)\b", low))
 
-    if re.search(r"\b(model|vehicle|auto|car|truck|motorcycle|suv|boat|rv|atv)\b", low):
+    # "2025 Honda": a year followed by a capitalised make is a vehicle.
+    brand_year = re.search(r"\b(19[5-9]\d|20\d\d)\s+[A-Z][a-z]+", q) and re.search(r"\b(financ|loan|apr|rate|buy)", low)
+    if brand_year and not re.search(r"\b(auto|car|vehicle|truck|motorcycle|suv|boat|rv|atv)\b", low):
+        qu.toks.append("auto")        # "a 2025 Honda" is a car
+    if brand_year or re.search(r"\b(model|vehicle|auto|car|truck|motorcycle|suv|boat|rv|atv)\b", low):
         for y in _YEAR_RE.findall(low):
             # a year that is not the "as of" date of the question
             # "as of May 2026" / "in 2026" is a date; "a 2025 model-year vehicle" is a model year.
@@ -114,11 +130,12 @@ def parse_question(q: str, as_of: Optional[str] = None) -> Query:
     qu.metric = named[0] if len(named) == 1 and len(asked) == 1 else None
 
     # Rate questions name a rate, or ask what a deposit product pays/earns ("what does the 17-month special pay").
-    qu.rate_intent = bool(re.search(r"\b(rates?|aprs?|apys?|interest|dividends?|yields?)\b", low)) or bool(
+    no_names = re.sub(r"\b1st rate\b", "", low)       # "1st Rate Checking" is a product name, not a rate question
+    qu.rate_intent = bool(re.search(r"\b(rates?|aprs?|apys?|interest|dividends?|yields?)\b", no_names)) or bool(
         re.search(r"\b(pay|pays|paying|earn|earns|earning)\b", low) and (
             qu.term_months or re.search(r"\b(certificate|savings|special|ira|money market|checking|account)\b", low)))
     qu.link_intent = bool(LINK_WORDS.search(low))
-    qu.list_intent = bool(re.search(r"\b(what|which)\b.*\b(do you offer|are available|options|types|kinds)\b", low)) or bool(
+    qu.list_intent = qu.list_intent or bool(re.search(r"\b(what|which)\b.*\b(do you offer|are available|options|types|kinds)\b", low)) or bool(
         re.search(r"\b(all|list|every|each)\b", low)) or bool(re.search(r"\brates\b|\bcards\b|\baccounts\b", low))
 
     for word in ("jumbo", "special", "refinance", "refi", "business", "roth", "traditional", "ira", "intro",

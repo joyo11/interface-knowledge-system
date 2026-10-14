@@ -84,10 +84,16 @@ class Engine:
             product = _product_name(g.winner)
             parts = []
             want_min = bool(re.search(r"\bminimum\b|\bmin\.?\b|\bhow much (do i need|to open)\b", q.raw.lower()))
+            low = q.raw.lower()
+            # "after the promotional period" asks for the standard rate; "intro/promo rate" for the introductory one
+            intro = (False if re.search(r"\bafter (the )?(intro|promo)", low) else
+                     True if ({"intro", "introductory"} & q.flags or re.search(r"\bpromo", low)) else None)
             for r in rows:
-                cols = rate_columns(g.winner.table.header, r.row, q.metric)
+                cols = rate_columns(g.winner.table.header, r.row, q.metric, intro=intro)
                 if want_min:
-                    cols = min_columns(g.winner.table.header, r.row) or cols
+                    cols = min_columns(g.winner.table.header, r.row)
+                    if not cols and not q.rate_intent:
+                        continue       # a minimum the rate table doesn't state (e.g. credit score): not this table
                 if not cols:
                     continue
                 vals = ", ".join(f"{v} {n}".strip() if n and n.lower() not in v.lower() else v for n, v in cols)
@@ -106,7 +112,26 @@ class Engine:
         if not lines:
             return None
         text = ". ".join(lines) + "."
+        if q.change_intent:
+            prev = self._previous_values(q, view, chosen[0])
+            if prev:
+                text += " " + prev
         return self._ok(text, sources, " ".join(notes) or None)
+
+    def _previous_values(self, q: Query, view, g) -> Optional[str]:
+        """For 'what was it before?': the most recent earlier value of the same row on the same page."""
+        current = {r.label.lower(): rate_columns(g.winner.table.header, r.row, q.metric) for r in g.rows}
+        for old in reversed([v for v in self.s.views if v.taken_on < view.taken_on]):
+            for og in candidate_groups(self.s, old, q):
+                if og.winner.url != g.winner.url:
+                    continue
+                for r in og.rows:
+                    cur = current.get(r.label.lower())
+                    was = rate_columns(og.winner.table.header, r.row, q.metric)
+                    if cur and was and [v for _, v in was] != [v for _, v in cur]:
+                        vals = ", ".join(f"{v} {n}".strip() for n, v in was)
+                        return f"Before that it was {vals} (download of {old.taken_on.isoformat()})."
+        return None
 
     # ------------------------------------------------------------------ links
     def _link(self, q: Query, view) -> Optional[dict]:
