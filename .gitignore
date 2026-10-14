@@ -1,0 +1,10 @@
+results/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+snapshots/0*/
+# Website snapshots are not redistributed (copy the kit's snapshots_zip/ in to run)
+snapshots_zip/
+snapshots/0*/
+Knowledge-Hackathon-Assignment.pdf
