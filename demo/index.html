@@ -4,9 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What's true now: a credit union knowledge system</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+@font-face{font-family:"Schibsted Grotesk";src:url(/fonts/SchibstedGrotesk.woff2) format("woff2");font-weight:400 800;font-display:block}
 :root{
   --paper:#EDF1F5; --sheet:#FFFFFF; --ink:#14213D; --ink-2:#4A5672; --rule:#D3DAE4;
   --blue:#2B59C3; --blue-wash:#E3EBFA; --stale:#B23A48; --stale-wash:#F8E6E8; --live:#1F7A4D; --live-wash:#E2F2EA;
@@ -77,7 +76,9 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .run{font:inherit;font-weight:600;font-size:.95rem;padding:12px 18px;border-radius:12px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;text-align:left;width:100%}
 .run:hover{background:var(--ink);color:#fff}
 .run small{display:block;font-weight:400;font-size:.85rem;margin-top:2px;opacity:.8}
-.out{margin-top:14px}
+.out{margin-top:14px;opacity:0;transform:translateY(8px);transition:opacity .45s ease-out,transform .45s ease-out}
+.rule.shown .out{opacity:1;transform:none}
+.out .ans{animation:none}
 
 /* answer card (shared) */
 .ans{border-radius:12px;padding:18px 20px;background:var(--paper);animation:in .25s ease-out}
@@ -86,6 +87,8 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .verdict.ok{background:var(--live-wash);color:var(--live)}
 .verdict.no{background:var(--stale-wash);color:var(--stale)}
 .ans .text{font-size:1.1rem;font-weight:600;margin:10px 0 10px;line-height:1.4}
+.ans .text.long{font-size:.92rem;font-weight:500;color:var(--ink-2);line-height:1.5}
+.ans .raw{display:block;font-size:.74rem;font-weight:600;color:var(--ink-2);margin-top:10px}
 .ans .meta{color:var(--ink-2);font-size:.8rem;display:flex;gap:16px;flex-wrap:wrap}
 .copies{display:grid;gap:8px;margin-top:12px}
 .copy{border-radius:10px;padding:12px 14px;border:1px solid var(--rule);background:var(--sheet)}
@@ -358,7 +361,7 @@ function ansCard(r, full){
   const a = r.answer, w = r.why || {};
   const copies = w.winner ? `<div class="copies">${copyCard(w.winner,true)}${(w.losers||[]).slice(0, full?5:3).map(l=>copyCard(l,false)).join("")}</div>` : "";
   const card = `<div class="ans"><span class="verdict ${a.confident?"ok":"no"}">${a.confident?"Answered":"Doesn't know, says so"}</span>
-    <p class="text">${esc(a.text)}</p>
+    ${a.text.length>170 && w.winner ? `<span class="raw">The system's exact answer, the rows it quoted are below</span><p class="text long">${esc(a.text)}</p>` : `<p class="text">${esc(a.text)}</p>`}
     ${a.conflict_note?`<p class="note">${esc(a.conflict_note)}</p>`:""}
     ${full && a.sources.length?`<ul class="srcs">${a.sources.map(s=>`<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></li>`).join("")}</ul>`:""}
     <div class="meta"><span>From the ${esc((w.snapshot||"").slice(3,13))} download</span><span>${r.ms} ms</span><span>No LLM</span></div></div>`;
@@ -380,11 +383,12 @@ async function init(){
   conflicts = await api("/api/conflicts"); renderConflicts();
 }
 
-document.querySelectorAll(".run").forEach(b => b.onclick = async () => {
-  const out = b.nextElementSibling; out.innerHTML = `<p style="color:var(--ink-2)">Answering…</p>`;
+async function runRule(b){
+  const out = b.nextElementSibling;
   out.innerHTML = ansCard(await ask(b.dataset.q, null), false);
-  b.firstChild.textContent = "Run again";
-});
+}
+document.querySelectorAll(".run").forEach(b => { b.firstChild.textContent = "Run again"; b.onclick = () => runRule(b); });
+const preload = Promise.all([...document.querySelectorAll(".run")].map(runRule));
 
 function renderConflicts(){
   const f = $("#cfilter").value.toLowerCase();
@@ -417,8 +421,8 @@ const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting)
   {rootMargin:"-45% 0px -50% 0px"});
 steps.forEach(s => io.observe(s));
 /* each rule's demo runs itself the first time it scrolls into view */
-const auto = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ auto.unobserve(e.target); e.target.querySelector(".run").click(); } }), {threshold:.55});
-document.querySelectorAll(".rule").forEach(r => auto.observe(r));
+const auto = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ auto.unobserve(e.target); e.target.classList.add("shown"); } }), {threshold:.35});
+preload.then(() => document.querySelectorAll(".rule").forEach(r => auto.observe(r)));
 document.addEventListener("keydown", e => {
   if(e.target.matches("input")) return;
   if(["ArrowDown","PageDown"].includes(e.key)){ e.preventDefault(); steps[Math.min(cur+1, steps.length-1)].scrollIntoView(); }

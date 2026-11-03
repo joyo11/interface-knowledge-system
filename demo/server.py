@@ -111,6 +111,14 @@ class H(BaseHTTPRequestHandler):
             self.send_header("content-length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif u.path == "/fonts/SchibstedGrotesk.woff2":  # bundled so the page works offline
+            body = (Path(__file__).parent / "fonts" / "SchibstedGrotesk.woff2").read_bytes()
+            self.send_response(200)
+            self.send_header("content-type", "font/woff2")
+            self.send_header("cache-control", "max-age=86400")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         elif u.path == "/api/meta":
             self._json({"snapshots": [{"id": s.snapshot_id, "taken_on": s.taken_on, "pages": len(s.pages)}
                                       for s in SNAPS],
