@@ -36,6 +36,7 @@ section.step{min-height:100vh;padding:88px 72px 96px;max-width:1400px;scroll-mar
 .kicker{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;color:var(--ink-2);font-size:.9rem;font-weight:600}
 .kicker b{font-size:.9rem;color:var(--blue)}
 h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em;font-weight:800;margin:0 0 20px;max-width:22ch}
+.analogy{font-size:1.05rem;max-width:62ch;margin:-22px 0 40px;padding:16px 20px;border-radius:14px;background:var(--sheet);border:1px solid var(--rule);border-left:4px solid var(--blue)}
 .say{font-size:1.15rem;color:var(--ink-2);max-width:60ch;margin-bottom:40px}
 
 /* ---------- hero ---------- */
@@ -101,6 +102,7 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .copy ul{list-style:none;margin:0;padding:0;font-size:.86rem}
 .copy.lose .v{text-decoration:line-through;text-decoration-color:var(--stale);text-decoration-thickness:2px;color:var(--ink-2)}
 .copy.win .v{font-weight:700}
+.more{font-size:.85rem;color:var(--stale);font-weight:600;padding:2px 4px}
 
 /* ---------- step 3: architecture ---------- */
 .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;position:relative}
@@ -136,18 +138,18 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .st.used{background:var(--live-wash);color:var(--live)}
 .st.idle{background:var(--paper);color:var(--ink-2)}
 .st.load{background:var(--blue-wash);color:var(--blue)}
-.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:20px;padding:34px 38px;min-height:560px}
+.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:20px;padding:32px 36px}
 .mod .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:6px}
 .mod h3{font-size:2rem;letter-spacing:-.025em;font-weight:800;margin:0;line-height:1.1}
 .mod .file{font-size:.85rem;color:var(--ink-2);margin:6px 0 20px}
 .mod .file b{color:var(--ink);font-weight:600}
-.mod .what{font-size:1.08rem;line-height:1.55;max-width:66ch;margin-bottom:22px}
-.io{display:grid;grid-template-columns:1fr 34px 1fr;align-items:stretch;margin-bottom:28px;max-width:760px}
+.mod .what{font-size:1.08rem;line-height:1.55;max-width:66ch;margin-bottom:18px}
+.io{display:grid;grid-template-columns:1fr 34px 1fr;align-items:stretch;margin-bottom:18px;max-width:760px}
 .io div{background:var(--paper);border-radius:12px;padding:12px 16px}
 .io small{display:block;font-size:.74rem;font-weight:600;color:var(--ink-2);margin-bottom:2px}
 .io span{font-size:.95rem;font-weight:600}
 .io i{align-self:center;justify-self:center;width:12px;height:12px;border-top:2.5px solid var(--ink-2);border-right:2.5px solid var(--ink-2);transform:rotate(45deg)}
-.live{border:1.5px solid var(--blue);border-radius:16px;padding:22px 24px;margin-bottom:26px;background:linear-gradient(var(--blue-wash),var(--blue-wash)) top/100% 0 no-repeat}
+.live{border:1.5px solid var(--blue);border-radius:16px;padding:20px 24px;margin-bottom:6px;background:linear-gradient(var(--blue-wash),var(--blue-wash)) top/100% 0 no-repeat}
 .live > p.lh{font-weight:700;color:var(--blue);font-size:.92rem;margin-bottom:12px}
 .live .lq{font-size:.88rem;color:var(--ink-2);margin-bottom:14px}
 .kvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
@@ -171,9 +173,13 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .mini td,.mini th{padding:8px 12px;border-bottom:1px solid var(--rule);text-align:left}
 .mini th{font-size:.78rem}
 .eff{display:inline-block;margin-top:12px;font-weight:700;color:var(--live);background:var(--live-wash);padding:6px 12px;border-radius:8px}
-.whybuilt{display:flex;gap:14px;align-items:baseline;margin-bottom:26px;max-width:72ch}
+.whybuilt{display:flex;gap:14px;align-items:baseline;margin-bottom:22px;max-width:72ch}
 .whybuilt b{white-space:nowrap;font-size:.9rem;color:var(--blue)}
 .whybuilt p{font-size:1rem}
+.mtabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--rule)}
+.mtabs button{font:inherit;font-weight:600;font-size:.95rem;padding:10px 16px;border:0;background:none;color:var(--ink-2);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.mtabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--blue)}
+.codenote{font-size:.9rem;color:var(--ink-2);margin-bottom:12px}
 .code{border-radius:16px;background:#14213D;color:#E7ECF5;overflow:hidden}
 .code .ch{display:flex;justify-content:space-between;padding:12px 18px;font-size:.8rem;color:#A9B6D3;border-bottom:1px solid #2A3A5E}
 .code .ch b{color:#fff;font-weight:600}
@@ -244,6 +250,10 @@ td.vals span{display:inline-block;margin:0 6px 4px 0;padding:2px 8px;border-radi
 td.vals span.keep{background:var(--live-wash);color:var(--live);font-weight:600}
 td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 .loading{opacity:.45}
+.ckinds{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.ckinds div{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:16px 20px}
+.ckinds b{display:block;font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.ckinds span{color:var(--ink-2);font-size:.9rem}
 
 @media (max-width:1100px){
   .rail{display:none} main{margin-left:0}
@@ -277,7 +287,7 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <!-- 0 -->
 <section class="step hero" id="s0">
   <h1>The website said <s>5.34%</s> and <span class="now">5.39%</span>. Only one is true.</h1>
-  <p class="say">I built a knowledge system over five downloads of Dupaco Community Credit Union's website. It answers with the value that is current, cites the page it came from, reports the copies it rejected, and says plainly when the site doesn't know.</p>
+  <p class="say">I built a system that answers customer questions from a bank's website. The website contradicts itself, so the system works out which answer is true now, shows where it came from, and says “I don't know” instead of guessing.</p>
   <ul class="facts" id="facts"></ul>
 </section>
 
@@ -285,15 +295,13 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <section class="step" id="s1">
   <div class="kicker"><b>Step 1</b> The problem</div>
   <h2 class="t">Finding an answer is easy. Knowing which one is current is the job.</h2>
-  <p class="say">Five crawls of the same site over four months. Pages get updated at different times, so for weeks the site contradicts itself. A member asking a bank's AI for a rate must never hear the old number.</p>
+  <p class="say">When a bank changes a rate, it updates its main rates page, but other pages keep showing the old number for weeks. So the same question has two answers on the site, and only one is true.</p>
+  <p class="analogy">It's like a restaurant that raises a burger from $10 to $12 on the menu, but forgets the $10 sign in the window. Asked the price, you'd say $12. This system does the same for a bank's rates.</p>
   <div class="downloads" id="downloads"></div>
   <div class="traps">
-    <div class="trap"><h3>Stale copies</h3><p>The rate sheet updates, but the calculator and promo pages keep the old rate.</p>
-      <p class="eg">60-month auto loan: <s>5.34%</s> on the calculator, 5.39% on the rate sheet.</p></div>
-    <div class="trap"><h3>Look-alike facts</h3><p>Different terms, tiers and model years are different facts, not contradictions.</p>
-      <p class="eg">Share Savings pays a different rate at $10,000 than at $25,000. Both are true.</p></div>
-    <div class="trap"><h3>Things the site never says</h3><p>Questions about products that don't exist tempt a system into guessing a nearby number.</p>
-      <p class="eg">"What's your 7/1 ARM rate?" The right answer contains no number at all.</p></div>
+    <div class="trap"><h3>Stale copies</h3><p>The main rates page gets updated, but the calculator and promo pages keep the old rate.</p><p class="eg">60-month auto loan: <s>5.34%</s> on the calculator, 5.39% on the rate sheet.</p></div>
+    <div class="trap"><h3>Look-alike facts</h3><p>A different loan length or balance has a different rate. That's not a contradiction.</p><p class="eg">Share Savings pays a different rate at $10,000 than at $25,000. Both are true.</p></div>
+    <div class="trap"><h3>Things the site never says</h3><p>Asked about a product the bank doesn't have, a weak system guesses a nearby number.</p><p class="eg">"What's your 7/1 ARM rate?" The right answer contains no number at all.</p></div>
   </div>
 </section>
 
@@ -301,31 +309,31 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <section class="step" id="s2">
   <div class="kicker"><b>Step 2</b> How it decides</div>
   <h2 class="t">Five rules, applied in order, every time.</h2>
-  <p class="say">No model decides what's current. These rules do, so the same question always gets the same answer and every answer can be explained.</p>
+  <p class="say">Simple rules pick the right answer, not an AI guess. So the same question always gets the same answer, and every answer can be explained.</p>
   <div class="rules">
     <div class="rule">
       <div><h3><b>1</b>The date picks the download</h3>
-        <p>With an "as of" date, answer from the newest download taken on or before it. A date inside the question counts too: "as of May 2026" means May 31.</p></div>
+        <p>It keeps all five copies of the website. A question about May is answered from the May copy, not today's.</p></div>
       <div><button class="run" data-q="What was the rate on the 10-month fixed jumbo special certificate as of May 2026?">Run it<small>"What was the 10-month jumbo special rate as of May 2026?"</small></button><div class="out"></div></div>
     </div>
     <div class="rule">
       <div><h3><b>2</b>Newest effective date wins</h3>
-        <p>Every rate table keeps its own "effective as of" date. When copies disagree, the newest date wins and the losers are never quoted. They're reported as conflicts instead.</p></div>
+        <p>Under each rate table, the bank prints the date it took effect: “Rates effective as of August 31”. When pages disagree, the newest date wins.</p></div>
       <div><button class="run" data-q="What's the APR for a 60-month auto loan on a 2025 model-year vehicle?">Run it<small>"What's the APR for a 60-month auto loan on a 2025 vehicle?"</small></button><div class="out"></div></div>
     </div>
     <div class="rule">
       <div><h3><b>3</b>Then the more authoritative page</h3>
-        <p>Ties go to the page type that owns the fact: <code>rate sheet 5</code>, <code>product page 4</code>, <code>promo or guide 2</code>, <code>calculator or blog 1</code>.</p></div>
+        <p>Same date? Trust the official page. Each page type has a trust score: <code>rate sheet 5</code> <code>product page 4</code> <code>promo 2</code> <code>calculator 1</code>.</p></div>
       <div><button class="run" data-q="Can you tell me the interest rate for a 30-year mortgage?">Run it<small>"What's the interest rate for a 30-year mortgage?"</small></button><div class="out"></div></div>
     </div>
     <div class="rule">
       <div><h3><b>4</b>Qualifiers are facts, not conflicts</h3>
-        <p>The question is parsed for term, model year, balance, jumbo, refinance and APR vs APY. Rows that don't match are dropped, so a plain question never gets the jumbo rate.</p></div>
+        <p>Details in the question, like loan length, car year or balance, must match exactly. Rows for a different length or balance are removed.</p></div>
       <div><button class="run" data-q="What dividend rate do I earn on Share Savings with a balance between $10,000 and $24,999?">Run it<small>"Share Savings rate for a balance between $10,000 and $24,999?"</small></button><div class="out"></div></div>
     </div>
     <div class="rule">
       <div><h3><b>5</b>If the site doesn't say it, say so</h3>
-        <p>No current rate table for that product means a refusal. Refusals contain no numbers, not even a phone number, so there's nothing stale to leak.</p></div>
+        <p>If the bank doesn't list it, the answer is “I don't know”, with no numbers in it, so it can never give a wrong rate.</p></div>
       <div><button class="run" data-q="What is your rate on a 7/1 adjustable-rate mortgage?">Run it<small>"What is your rate on a 7/1 adjustable-rate mortgage?"</small></button><div class="out"></div></div>
     </div>
   </div>
@@ -335,7 +343,7 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <section class="step" id="s3">
   <div class="kicker"><b>Step 3</b> How it's built</div>
   <h2 class="t">Nine small modules. Open any one to see what it does.</h2>
-  <p class="say">About 2,100 lines of plain Python, no packages and no API keys. Pick a question, then open each module to watch what it does with that question, live.</p>
+  <p class="say">Pick a question, then open any module to see what it did with it.</p>
 
   <div class="qpick" id="qpick" role="group" aria-label="Question to trace"></div>
 
@@ -345,9 +353,9 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
   </div>
 
   <div class="choices">
-    <div class="choice"><h4>Why no LLM</h4><p>One stale number in an answer scored zero. Rules make every answer deterministic, fast and explainable. An LLM could still write the final sentence later, from values already filtered to current.</p></div>
-    <div class="choice"><h4>Why keep history</h4><p>"As of" questions need the site as it stood then, and conflicts only exist when you can compare copies across pages and downloads.</p></div>
-    <div class="choice"><h4>Why short conflict lists</h4><p>Conflicts are scored on precision and recall. Different tiers or rate vs APY are never reported, so the list stays at about 60 real ones.</p></div>
+    <div class="choice"><h4>Why no LLM</h4><p>One stale number scored zero. Rules are repeatable, fast and explainable.</p></div>
+    <div class="choice"><h4>Why keep history</h4><p>“As of” answers and conflict detection both need the old copies.</p></div>
+    <div class="choice"><h4>Why short conflict lists</h4><p>Tiers and terms aren't conflicts, so the list stays at 61 real ones.</p></div>
   </div>
 </section>
 
@@ -355,7 +363,7 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <section class="step" id="s4">
   <div class="kicker"><b>Step 4</b> How I tested it</div>
   <h2 class="t">I didn't only tune on the 40 public questions.</h2>
-  <p class="say">I built five more question sets, including two blind rounds written without seeing the code. The number I stand behind is the blind one.</p>
+  <p class="say">Two of the sets were blind, written without seeing the code. The blind number is the one I stand behind.</p>
   <div class="proof">
     <table>
       <thead><tr><th>Question set</th><th>Questions</th><th>Score</th></tr></thead>
@@ -381,16 +389,15 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <section class="step" id="s5">
   <div class="kicker"><b>Step 5</b> Limits and what's next</div>
   <h2 class="t">Where it falls short, and what I'd build next.</h2>
-  <p class="say">The misses are mostly one kind of question, which makes the next step clear.</p>
   <div class="two">
     <div class="list"><h3>Where it misses</h3><ul>
-      <li><b>Facts spread across paragraphs.</b> "Who is eligible" needs "live or work in the charter area" plus "Iowa, Illinois and Wisconsin". It quotes sentences, so it can't join them.</li>
-      <li><b>Ambiguous counts.</b> The site gives volunteer-time-off figures for 2023, 2024 and 2025.</li>
-      <li><b>Written for one credit union.</b> Page types and synonyms like CD and certificate live in two places: <code>parse.page_kind</code> and <code>rates.ALIASES</code>.</li></ul></div>
+      <li><b>Facts split across paragraphs.</b> “Who can join” needs two sentences. It quotes one.</li>
+      <li><b>Ambiguous counts.</b> “Last year” when the site has 2023, 2024 and 2025 figures.</li>
+      <li><b>Tuned to one credit union.</b> Page types and synonyms live in two places in the code.</li></ul></div>
     <div class="list"><h3>What I'd build next</h3><ul>
-      <li><b>An LLM that only writes the sentence.</b> It gets evidence already filtered to current values, so the stale-value trap stays closed.</li>
-      <li><b>Per-institution config.</b> Move page types and synonyms into a profile per credit union, so onboarding a new one is configuration, not code.</li>
-      <li><b>Conflict alerts for the institution.</b> The conflict list is useful on its own: it tells a credit union which of its pages still show old rates.</li></ul></div>
+      <li><b>An LLM that only writes the sentence,</b> from facts already checked as current.</li>
+      <li><b>A config per credit union,</b> so adding a new one is setup, not code.</li>
+      <li><b>Conflict alerts,</b> telling the credit union which pages still show old rates.</li></ul></div>
   </div>
 </section>
 
@@ -405,7 +412,7 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="answer">Answer</button>
     <button role="tab" aria-selected="false" data-tab="over">Same question over time</button>
-    <button role="tab" aria-selected="false" data-tab="conf">Conflicts found <span id="ccount"></span></button>
+    <button role="tab" aria-selected="false" data-tab="conf">Where the site contradicts itself <span id="ccount"></span></button>
   </nav>
   <div class="panel" id="p-answer"><p class="empty">Type a question above. Try "How many branches does Dupaco have?"</p></div>
   <div class="panel" id="p-over" hidden><p class="empty">Ask a question to see how its answer changed across the five downloads.</p></div>
@@ -425,15 +432,17 @@ let asOf = null, last = "", conflicts = [];
 async function api(path){ return (await fetch(path)).json(); }
 const ask = (q, a) => api("/api/ask?q="+encodeURIComponent(q)+(a?"&as_of="+a:""));
 
-function copyCard(c, win){
-  const rows = (c.rows||[]).filter(r => r.values.length).slice(0,4).map(r =>
+function copyCard(c, win, maxRows=4){
+  const rows = (c.rows||[]).filter(r => r.values.length).slice(0,maxRows).map(r =>
     `<li>${esc(r.label)}: <span class="v">${esc(r.values.join(", "))}</span></li>`).join("");
   return `<div class="copy ${win?"win":"lose"}"><div class="hd"><span class="who">${esc(short(c.url))}</span><span class="tag">${win?"Quoted":"Rejected"}</span></div>
     <div class="kv">${esc(KIND[c.page_kind]||c.page_kind)}, authority ${c.authority}. Effective ${c.effective?fmtDate(c.effective):"not stated"}.</div>${rows?`<ul>${rows}</ul>`:""}</div>`;
 }
 function ansCard(r, full){
   const a = r.answer, w = r.why || {};
-  const copies = w.winner ? `<div class="copies">${copyCard(w.winner,true)}${(w.losers||[]).slice(0, full?5:3).map(l=>copyCard(l,false)).join("")}</div>` : "";
+  const nl = (w.losers||[]).length, showL = full ? 5 : 1, mr = full ? 4 : 2;
+  const more = nl > showL ? `<p class="more">+${nl-showL} more rejected cop${nl-showL===1?"y":"ies"} with older dates</p>` : "";
+  const copies = w.winner ? `<div class="copies">${copyCard(w.winner,true,mr)}${(w.losers||[]).slice(0, showL).map(l=>copyCard(l,false,mr)).join("")}${more}</div>` : "";
   const card = `<div class="ans"><span class="verdict ${a.confident?"ok":"no"}">${a.confident?"Answered":"Doesn't know, says so"}</span>
     ${a.text.length>170 && w.winner ? `<span class="raw">The system's exact answer, the rows it quoted are below</span><p class="text long">${esc(a.text)}</p>` : `<p class="text">${esc(a.text)}</p>`}
     ${a.conflict_note?`<p class="note">${esc(a.conflict_note)}</p>`:""}
@@ -447,7 +456,7 @@ function ansCard(r, full){
 
 async function init(){
   const m = await api("/api/meta");
-  $("#facts").innerHTML = `<li><b>5</b><span>downloads of the site</span></li><li><b>${m.snapshots.at(-1).pages}</b><span>pages in the newest one</span></li><li><b>${m.conflicts}</b><span>contradictions found</span></li><li><b>0</b><span>stale values in any answer</span></li>`;
+  $("#facts").innerHTML = `<li><b>5</b><span>downloads of the site</span></li><li><b>${m.snapshots.at(-1).pages}</b><span>pages in the newest one</span></li><li><b>${m.conflicts}</b><span>places the site contradicts itself</span></li><li><b>0</b><span>stale values in any answer</span></li>`;
   $("#downloads").innerHTML = m.snapshots.map(s => `<div class="dl"><i></i><strong>${fmtDate(s.taken_on)}</strong><small>${esc(s.id.split("_").slice(2).join(" "))}</small><em>${s.pages} pages</em></div>`).join("");
   $("#ccount").textContent = `(${m.conflicts})`;
   const stops = m.snapshots.map(s => ({id:s.taken_on,label:fmtDate(s.taken_on),sub:s.id.split("_").slice(2).join(" ")})).concat([{id:"",label:"Today",sub:"newest download"}]);
@@ -467,9 +476,12 @@ const preload = Promise.all([...document.querySelectorAll(".run")].map(runRule))
 function renderConflicts(){
   const f = $("#cfilter").value.toLowerCase();
   const list = conflicts.filter(c => !f || (c.topic+" "+c.values.join(" ")+" "+c.reason).toLowerCase().includes(f));
-  $("#ctable").innerHTML = list.length ? `<table><thead><tr><th style="width:28%">Fact</th><th style="width:20%">Values seen</th><th style="width:12%">Kept</th><th>Why</th></tr></thead><tbody>${
+  const kindOf = c => /download|snapshot/i.test(c.reason) ? 2 : /publish|article/i.test(c.reason) ? 3 : 1;
+  const n = [0,0,0,0]; conflicts.forEach(c => n[kindOf(c)]++);
+  const sum = `<div class="ckinds"><div><b>${n[1]}</b><span>old copies on another page</span></div><div><b>${n[2]}</b><span>official rates that changed between downloads</span></div><div><b>${n[3]}</b><span>numbers restated in old articles</span></div></div>`;
+  $("#ctable").innerHTML = sum + (list.length ? `<table><thead><tr><th style="width:28%">Fact</th><th style="width:20%">Values seen</th><th style="width:12%">Kept</th><th>Why</th></tr></thead><tbody>${
     list.map(c => `<tr><td>${esc(c.topic)}</td><td class="vals">${c.values.map(v=>`<span class="${v===c.resolution?"keep":""}">${esc(v)}</span>`).join("")}</td><td><strong>${esc(c.resolution)}</strong></td><td class="reason">${esc(c.reason)}</td></tr>`).join("")
-  }</tbody></table>` : `<p class="empty">No conflicts match "${esc(f)}". Clear the filter to see all ${conflicts.length}.</p>`;
+  }</tbody></table>` : `<p class="empty">No conflicts match "${esc(f)}". Clear the filter to see all ${conflicts.length}.</p>`);
 }
 $("#cfilter").oninput = renderConflicts;
 
@@ -512,7 +524,7 @@ const MODULES = [
   {id:"solution", group:"When a question arrives", name:"The front door", file:"solution.py", lines:67, fn:"KnowledgeSystem.answer",
    what:"The file interface.ai's scorer plugs into. It connects the three required methods, ingest, answer and conflicts, to the real logic. It also remembers answers, so asking the same question twice returns the identical answer instantly.",
    inp:"A call from the scorer", outp:"An answer: text, sources, confidence and a conflict note",
-   why:"Keeping the contract tiny means all the logic lives in modules that can be tested on their own.", status:t=>"used"},
+   why:"Keeping this file tiny means the real logic lives in separate parts that can each be checked on their own.", status:t=>"used"},
   {id:"qparse", group:"When a question arrives", name:"The question reader", file:"kb/qparse.py", lines:184, fn:"parse_question",
    what:"Turns the member's sentence into exact fields: the term in months, the vehicle model year, a balance or loan amount, words like jumbo or business, APR or APY, and any date written inside the question.",
    inp:"The member's question", outp:"Structured fields",
@@ -522,9 +534,9 @@ const MODULES = [
    inp:"Structured fields", outp:"The path that answers it",
    why:"Each kind of fact has one owner, so rate logic never leaks into hours or addresses.", status:t=>"used"},
   {id:"search", group:"When a question arrives", name:"The search engine", file:"kb/search.py", lines:104, fn:"BM25.search",
-   what:"A classic keyword ranking method called BM25, written from scratch with only Python's standard library. It finds the candidate tables and passages. It doesn't decide what's true: the rules after it do.",
+   what:"A keyword search, the same basic idea behind traditional search engines, written from scratch. It finds the pages that might answer the question. It doesn't decide which one is true: the rules after it do.",
    inp:"The question's words", outp:"Ranked candidates",
-   why:"No embeddings means no API key, no network calls and no randomness.", status:t=>"used"},
+   why:"It needs no internet connection or paid service, and it gives the same results every time.", status:t=>"used"},
   {id:"rates", group:"When a question arrives", name:"The rate picker", file:"kb/rates.py", lines:377, fn:"_rank,row_ok", star:true,
    what:"Where 5.39% beats 5.34%. It keeps only the rows that match the question's term, model year and balance. It groups copies of the same rate from different pages, then ranks them: newest effective date first, then the more authoritative page.",
    inp:"Candidate rate tables", outp:"One winning rate, plus the stale copies it rejected",
@@ -539,7 +551,7 @@ const MODULES = [
    why:"A short, precise list scores better and is genuinely useful to a credit union.", status:t=>"used"},
 ];
 const ST = {used:["used","Used"], idle:["idle","Not needed"], load:["load","Ran at load"]};
-let modIdx = 6, tr = null, trQ = QPICK[0][1];
+let modIdx = 6, tr = null, trQ = QPICK[0][1], modTab = "live";
 const srcCache = {};
 
 function hl(line){
@@ -558,7 +570,7 @@ function codeHTML(src, m){
 }
 
 function liveHTML(m, t){
-  const L = (body) => `<div class="live"><p class="lh">What it did with this question</p><p class="lq">“${esc(t.question)}”</p>${body}</div>`;
+  const L = (body) => `<div class="live"><p class="lq">Question: “${esc(t.question)}”</p>${body}</div>`;
   const k = (label, v) => `<div class="${v==null||v===""||(Array.isArray(v)&&!v.length)||v===false?"off":""}"><small>${label}</small><b>${v==null||v===""||(Array.isArray(v)&&!v.length)?"not in the question":v===true?"yes":v===false?"no":esc(Array.isArray(v)?v.join(", "):v)}</b></div>`;
   const s = t.store, q = t.qparse, r = t.engine.route;
   switch(m.id){
@@ -620,10 +632,12 @@ async function renderMod(){
     <p class="file"><b>${esc(m.file)}</b>, ${m.lines} lines</p>
     <p class="what">${esc(m.what)}</p>
     <div class="io"><div><small>Takes in</small><span>${esc(m.inp)}</span></div><i></i><div><small>Gives back</small><span>${esc(m.outp)}</span></div></div>
-    ${tr ? liveHTML(m, tr) : `<div class="live"><p class="lh">Tracing the question…</p></div>`}
     <div class="whybuilt"><b>Why this way</b><p>${esc(m.why)}</p></div>
-    <div class="code"><div class="ch"><span>The real code, <b>${esc(src.blocks.map(b=>b.name).join(" and "))}</b></span><span>${esc(m.file)}</span></div><pre>${codeHTML(src, m)}</pre></div>
+    <div class="mtabs" role="tablist"><button type="button" role="tab" data-t="live" aria-selected="${modTab==="live"}">What it did with this question</button><button type="button" role="tab" data-t="code" aria-selected="${modTab==="code"}">The real code</button></div>
+    ${modTab==="live" ? (tr ? liveHTML(m, tr) : `<div class="live"><p class="lq">Tracing the question…</p></div>`)
+      : `<p class="codenote">You don't need to read this. It's here to show that the explanation above matches the actual code.</p><div class="code"><div class="ch"><span><b>${esc(src.blocks.map(b=>b.name).join(" and "))}</b></span><span>${esc(m.file)}</span></div><pre>${codeHTML(src, m)}</pre></div>`}
     <div class="modnav"><button type="button" id="mprev" ${modIdx===0?"disabled":""}>Previous module<kbd>←</kbd></button><button type="button" id="mnext" ${modIdx===MODULES.length-1?"disabled":""}>Next module<kbd>→</kbd></button></div>`;
+  document.querySelectorAll(".mtabs button").forEach(x => x.onclick = () => { modTab = x.dataset.t; renderMod(); });
   $("#mprev").onclick = () => goMod(modIdx-1);
   $("#mnext").onclick = () => goMod(modIdx+1);
 }
