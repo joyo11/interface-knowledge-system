@@ -146,3 +146,15 @@ Rate vs APY, different tiers and different terms are never reported as conflicts
   system key-free and deterministic.
 - The page-kind rules and the few synonyms (mortgage ↔ home loan, CD ↔ certificate, share certificate) are
   written for a credit-union site. They're listed in one place each (`parse.page_kind`, `rates.ALIASES`).
+
+## Walkthrough UI (optional, added after submission)
+
+`demo/` is a local, read-only page for walking through the system. It loads the unchanged `submission/` code and
+shows, for each question, the copy it quoted and the stale copies it rejected, the same question across all five
+downloads, and the full conflict list. Standard library only, like the rest.
+
+```bash
+python3 demo/server.py     # then open http://localhost:8787 (ingest takes a few seconds)
+```
+
+The graded submission is commit `2a31edc`. Nothing in `submission/` changed after it.

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's true now: a credit union knowledge system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF1F5; --sheet:#FFFFFF; --ink:#14213D; --ink-2:#4A5672; --rule:#D3DAE4;
+  --blue:#2B59C3; --blue-wash:#E3EBFA; --stale:#B23A48; --stale-wash:#F8E6E8; --live:#1F7A4D; --live-wash:#E2F2EA;
+  --r-lg:16px; --r-sm:7px; --rail:250px;
+}
+*{box-sizing:border-box}
+html{font-family:"Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--paper);font-size:20px;line-height:1.5;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{margin:0}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+p{margin:0}
+
+/* ---------- rail: the call agenda ---------- */
+.rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);padding:40px 28px;border-right:1px solid var(--rule);background:var(--paper);display:flex;flex-direction:column;gap:6px;z-index:5}
+.rail .me{font-weight:700;font-size:1rem;margin-bottom:4px}
+.rail .sub{color:var(--ink-2);font-size:.78rem;margin-bottom:26px}
+.rail a{display:grid;grid-template-columns:28px 1fr;gap:2px 8px;padding:9px 10px;border-radius:10px;text-decoration:none;color:var(--ink-2)}
+.rail a b{font-weight:700;font-size:.82rem;grid-row:span 2;padding-top:2px}
+.rail a span{font-weight:600;font-size:.9rem;color:inherit}
+.rail a small{font-size:.74rem}
+.rail a:hover{background:var(--sheet)}
+.rail a.on{background:var(--ink);color:#fff}
+.rail .keys{margin-top:auto;color:var(--ink-2);font-size:.72rem}
+.rail kbd{font:inherit;font-weight:600;border:1px solid var(--rule);border-radius:4px;padding:0 5px;background:var(--sheet)}
+
+main{margin-left:var(--rail)}
+section.step{min-height:100vh;padding:88px 72px 96px;max-width:1400px;scroll-margin-top:0}
+.kicker{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;color:var(--ink-2);font-size:.9rem;font-weight:600}
+.kicker b{font-size:.9rem;color:var(--blue)}
+h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em;font-weight:800;margin:0 0 20px;max-width:22ch}
+.say{font-size:1.15rem;color:var(--ink-2);max-width:60ch;margin-bottom:40px}
+
+/* ---------- hero ---------- */
+.hero h1{font-size:clamp(3rem,6.4vw,6rem);line-height:.98;letter-spacing:-.045em;font-weight:800;margin:0 0 30px;max-width:13ch}
+.hero h1 s{text-decoration:none;position:relative;display:inline-block;animation:fade .5s 1.1s both;font-weight:800}
+.hero h1 s::after{content:"";position:absolute;left:-4%;top:54%;height:.09em;width:108%;background:var(--stale);border-radius:99px;transform-origin:left;transform:scaleX(0);animation:strike .55s .6s cubic-bezier(.7,0,.3,1) forwards}
+.hero h1 .now{display:inline-block;color:var(--live);animation:glow .6s 1.2s both}
+@keyframes strike{to{transform:scaleX(1)}}
+@keyframes fade{to{color:var(--ink-2);font-weight:600}}
+@keyframes glow{from{color:var(--ink)}to{color:var(--live)}}
+.hero .say{font-size:1.3rem}
+.facts{display:flex;gap:56px;list-style:none;margin:56px 0 0;padding:28px 0 0;border-top:1px solid var(--rule)}
+.facts b{display:block;font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.facts span{color:var(--ink-2);font-size:.9rem}
+
+/* ---------- step 1: problem ---------- */
+.downloads{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:56px}
+.downloads::before{content:"";position:absolute;left:12px;right:12px;top:11px;height:2px;background:var(--rule)}
+.dl i{display:block;width:24px;height:24px;border-radius:50%;background:var(--sheet);border:2px solid var(--blue);margin-bottom:14px;position:relative}
+.dl strong{display:block;font-size:1.15rem}
+.dl small{display:block;color:var(--ink-2);font-size:.85rem}
+.dl em{font-style:normal;font-weight:600;font-size:.95rem}
+.traps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.trap{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-lg);padding:26px}
+.trap h3{font-size:1.2rem;margin:0 0 10px}
+.trap p{color:var(--ink-2);font-size:.98rem}
+.trap .eg{margin-top:16px;font-size:.95rem;color:var(--ink)}
+.trap .eg s{text-decoration-color:var(--stale);text-decoration-thickness:2px;color:var(--ink-2)}
+
+/* ---------- step 2: rules ---------- */
+.rules{display:grid;gap:22px}
+.rule{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-lg);padding:30px 32px;align-items:start}
+.rule > div:first-child{position:sticky;top:48px}
+.rule h3{font-size:1.35rem;margin:0 0 10px;letter-spacing:-.01em}
+.rule h3 b{color:var(--blue);margin-right:10px}
+.rule p{color:var(--ink-2)}
+.rule code{font-family:inherit;font-weight:600;color:var(--ink);background:var(--paper);padding:1px 6px;border-radius:4px;font-size:.9em}
+.run{font:inherit;font-weight:600;font-size:.95rem;padding:12px 18px;border-radius:12px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;text-align:left;width:100%}
+.run:hover{background:var(--ink);color:#fff}
+.run small{display:block;font-weight:400;font-size:.85rem;margin-top:2px;opacity:.8}
+.out{margin-top:14px}
+
+/* answer card (shared) */
+.ans{border-radius:12px;padding:18px 20px;background:var(--paper);animation:in .25s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.verdict{display:inline-block;font-size:.8rem;font-weight:600;padding:3px 9px;border-radius:var(--r-sm)}
+.verdict.ok{background:var(--live-wash);color:var(--live)}
+.verdict.no{background:var(--stale-wash);color:var(--stale)}
+.ans .text{font-size:1.1rem;font-weight:600;margin:10px 0 10px;line-height:1.4}
+.ans .meta{color:var(--ink-2);font-size:.8rem;display:flex;gap:16px;flex-wrap:wrap}
+.copies{display:grid;gap:8px;margin-top:12px}
+.copy{border-radius:10px;padding:12px 14px;border:1px solid var(--rule);background:var(--sheet)}
+.copy.win{border:1.5px solid var(--live);box-shadow:inset 4px 0 0 var(--live)}
+.copy .hd{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:4px}
+.copy .who{font-weight:600;font-size:.88rem;word-break:break-all}
+.copy .tag{font-size:.76rem;font-weight:700;white-space:nowrap}
+.copy.win .tag{color:var(--live)} .copy.lose .tag{color:var(--stale)}
+.copy .kv{color:var(--ink-2);font-size:.8rem;margin-bottom:4px}
+.copy ul{list-style:none;margin:0;padding:0;font-size:.86rem}
+.copy.lose .v{text-decoration:line-through;text-decoration-color:var(--stale);text-decoration-thickness:2px;color:var(--ink-2)}
+.copy.win .v{font-weight:700}
+
+/* ---------- step 3: architecture ---------- */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;position:relative}
+.box{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-lg);padding:22px;position:relative}
+.box:not(:last-child)::after{content:"";position:absolute;right:-14px;top:50%;width:10px;height:10px;border-top:2px solid var(--ink-2);border-right:2px solid var(--ink-2);transform:translateY(-50%) rotate(45deg)}
+.box h3{font-size:1.1rem;margin:0 0 8px}
+.box p{color:var(--ink-2);font-size:.9rem;margin-bottom:12px}
+.files{list-style:none;margin:0;padding:0;font-size:.82rem}
+.files li{display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--rule)}
+.files li span:last-child{color:var(--ink-2)}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.choice{border-left:3px solid var(--blue);padding:4px 0 4px 18px}
+.choice h4{margin:0 0 6px;font-size:1.02rem}
+.choice p{color:var(--ink-2);font-size:.92rem}
+
+/* ---------- step 4: proof ---------- */
+.proof{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
+table{width:100%;border-collapse:collapse;background:var(--sheet);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--rule);font-size:.95rem}
+th{text-align:left;font-weight:600;padding:14px 18px;border-bottom:1px solid var(--rule);color:var(--ink-2);font-size:.85rem}
+td{padding:14px 18px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.s{font-weight:700;white-space:nowrap}
+td.s small{font-weight:400;color:var(--ink-2)}
+tr.honest td{background:var(--blue-wash)}
+.big{font-size:5.5rem;font-weight:800;letter-spacing:-.05em;line-height:1}
+.bigl{color:var(--ink-2);margin:8px 0 28px;max-width:30ch}
+
+/* ---------- step 5: limits ---------- */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.list{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-lg);padding:28px 30px}
+.list h3{margin:0 0 14px;font-size:1.2rem}
+.list ul{margin:0;padding-left:20px;color:var(--ink-2)}
+.list li{margin-bottom:12px}
+.list li b{color:var(--ink)}
+
+/* ---------- step 6: console ---------- */
+.spine{position:relative;display:grid;grid-template-columns:repeat(6,1fr);margin:0 0 26px;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-lg);padding:22px 26px 18px}
+.spine::before{content:"";position:absolute;left:36px;right:36px;top:33px;height:2px;background:var(--rule)}
+.stop{position:relative;background:none;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.stop i{display:block;width:24px;height:24px;border-radius:50%;background:var(--sheet);border:2px solid var(--rule);margin-bottom:10px}
+.stop strong{display:block;font-size:1rem}
+.stop small{color:var(--ink-2);font-size:.78rem}
+.stop[aria-pressed=true] i{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 5px var(--blue-wash)}
+.stop[aria-pressed=true] strong{color:var(--blue)}
+form{display:flex;gap:12px;margin-bottom:24px}
+input[type=text]{flex:1;font:inherit;font-size:1.2rem;padding:18px 22px;border-radius:var(--r-lg);border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink)}
+input[type=text]:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 4px var(--blue-wash)}
+button.go{font:inherit;font-weight:600;font-size:1.1rem;padding:0 34px;border-radius:var(--r-lg);border:0;background:var(--ink);color:#fff;cursor:pointer}
+button.go:hover{background:var(--blue)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--rule);margin-bottom:24px}
+.tabs button{font:inherit;font-weight:600;font-size:1rem;padding:12px 18px;border:0;background:none;color:var(--ink-2);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
+.panel[hidden]{display:none}
+.empty{color:var(--ink-2);padding:30px 0}
+.console-ans{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
+.console-ans .ans{background:var(--sheet);border:1px solid var(--rule);padding:24px 26px}
+.console-ans .ans .text{font-size:1.35rem}
+.note{margin:10px 0;padding:10px 12px;border-left:3px solid var(--stale);background:var(--stale-wash);border-radius:0 6px 6px 0;font-size:.88rem}
+.srcs{list-style:none;margin:0 0 12px;padding:0;font-size:.85rem}
+.srcs a{color:var(--blue);word-break:break-all}
+.over{display:grid;gap:10px}
+.over .row{display:grid;grid-template-columns:170px 1fr;gap:20px;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:16px 20px}
+.over .row.changed{border-color:var(--blue);box-shadow:inset 4px 0 0 var(--blue)}
+.over small{color:var(--ink-2)}
+.cfilter{font:inherit;padding:12px 16px;border-radius:12px;border:1.5px solid var(--rule);width:100%;max-width:460px;margin-bottom:16px;background:var(--sheet)}
+td.vals span{display:inline-block;margin:0 6px 4px 0;padding:2px 8px;border-radius:4px;background:var(--paper)}
+td.vals span.keep{background:var(--live-wash);color:var(--live);font-weight:600}
+td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
+.loading{opacity:.45}
+
+@media (max-width:1100px){
+  .rail{display:none} main{margin-left:0}
+  section.step{padding:56px 24px}
+  .traps,.flow,.choices,.two,.proof,.rule,.console-ans{grid-template-columns:1fr}
+  .box::after{display:none}
+  .downloads,.spine{grid-template-columns:repeat(3,1fr);row-gap:18px}
+  .downloads::before,.spine::before{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="rail" aria-label="Walkthrough">
+  <div class="me">Shafay Joyo</div>
+  <div class="sub">interface.ai take-home walkthrough</div>
+  <a href="#s0" data-s="0"><b>0</b><span>What's true now</span><small>0:00</small></a>
+  <a href="#s1" data-s="1"><b>1</b><span>The problem</span><small>0:30</small></a>
+  <a href="#s2" data-s="2"><b>2</b><span>How it decides</span><small>3:00</small></a>
+  <a href="#s3" data-s="3"><b>3</b><span>How it's built</span><small>12:00</small></a>
+  <a href="#s4" data-s="4"><b>4</b><span>How I tested it</span><small>17:00</small></a>
+  <a href="#s5" data-s="5"><b>5</b><span>Limits and next</span><small>20:00</small></a>
+  <a href="#s6" data-s="6"><b>6</b><span>Ask it anything</span><small>22:00</small></a>
+  <div class="keys">Press <kbd>↓</kbd> <kbd>↑</kbd> to move between steps</div>
+</nav>
+
+<main>
+
+<!-- 0 -->
+<section class="step hero" id="s0">
+  <h1>The website said <s>5.34%</s> and <span class="now">5.39%</span>. Only one is true.</h1>
+  <p class="say">I built a knowledge system over five downloads of Dupaco Community Credit Union's website. It answers with the value that is current, cites the page it came from, reports the copies it rejected, and says plainly when the site doesn't know.</p>
+  <ul class="facts" id="facts"></ul>
+</section>
+
+<!-- 1 -->
+<section class="step" id="s1">
+  <div class="kicker"><b>Step 1</b> The problem</div>
+  <h2 class="t">Finding an answer is easy. Knowing which one is current is the job.</h2>
+  <p class="say">Five crawls of the same site over four months. Pages get updated at different times, so for weeks the site contradicts itself. A member asking a bank's AI for a rate must never hear the old number.</p>
+  <div class="downloads" id="downloads"></div>
+  <div class="traps">
+    <div class="trap"><h3>Stale copies</h3><p>The rate sheet updates, but the calculator and promo pages keep the old rate.</p>
+      <p class="eg">60-month auto loan: <s>5.34%</s> on the calculator, 5.39% on the rate sheet.</p></div>
+    <div class="trap"><h3>Look-alike facts</h3><p>Different terms, tiers and model years are different facts, not contradictions.</p>
+      <p class="eg">Share Savings pays a different rate at $10,000 than at $25,000. Both are true.</p></div>
+    <div class="trap"><h3>Things the site never says</h3><p>Questions about products that don't exist tempt a system into guessing a nearby number.</p>
+      <p class="eg">"What's your 7/1 ARM rate?" The right answer contains no number at all.</p></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="step" id="s2">
+  <div class="kicker"><b>Step 2</b> How it decides</div>
+  <h2 class="t">Five rules, applied in order, every time.</h2>
+  <p class="say">No model decides what's current. These rules do, so the same question always gets the same answer and every answer can be explained.</p>
+  <div class="rules">
+    <div class="rule">
+      <div><h3><b>1</b>The date picks the download</h3>
+        <p>With an "as of" date, answer from the newest download taken on or before it. A date inside the question counts too: "as of May 2026" means May 31.</p></div>
+      <div><button class="run" data-q="What was the rate on the 10-month fixed jumbo special certificate as of May 2026?">Run it<small>"What was the 10-month jumbo special rate as of May 2026?"</small></button><div class="out"></div></div>
+    </div>
+    <div class="rule">
+      <div><h3><b>2</b>Newest effective date wins</h3>
+        <p>Every rate table keeps its own "effective as of" date. When copies disagree, the newest date wins and the losers are never quoted. They're reported as conflicts instead.</p></div>
+      <div><button class="run" data-q="What's the APR for a 60-month auto loan on a 2025 model-year vehicle?">Run it<small>"What's the APR for a 60-month auto loan on a 2025 vehicle?"</small></button><div class="out"></div></div>
+    </div>
+    <div class="rule">
+      <div><h3><b>3</b>Then the more authoritative page</h3>
+        <p>Ties go to the page type that owns the fact: <code>rate sheet 5</code>, <code>product page 4</code>, <code>promo or guide 2</code>, <code>calculator or blog 1</code>.</p></div>
+      <div><button class="run" data-q="Can you tell me the interest rate for a 30-year mortgage?">Run it<small>"What's the interest rate for a 30-year mortgage?"</small></button><div class="out"></div></div>
+    </div>
+    <div class="rule">
+      <div><h3><b>4</b>Qualifiers are facts, not conflicts</h3>
+        <p>The question is parsed for term, model year, balance, jumbo, refinance and APR vs APY. Rows that don't match are dropped, so a plain question never gets the jumbo rate.</p></div>
+      <div><button class="run" data-q="What dividend rate do I earn on Share Savings with a balance between $10,000 and $24,999?">Run it<small>"Share Savings rate for a balance between $10,000 and $24,999?"</small></button><div class="out"></div></div>
+    </div>
+    <div class="rule">
+      <div><h3><b>5</b>If the site doesn't say it, say so</h3>
+        <p>No current rate table for that product means a refusal. Refusals contain no numbers, not even a phone number, so there's nothing stale to leak.</p></div>
+      <div><button class="run" data-q="What is your rate on a 7/1 adjustable-rate mortgage?">Run it<small>"What is your rate on a 7/1 adjustable-rate mortgage?"</small></button><div class="out"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="step" id="s3">
+  <div class="kicker"><b>Step 3</b> How it's built</div>
+  <h2 class="t">About 2,100 lines of plain Python. No packages, no API keys.</h2>
+  <p class="say">Ingest once, keep history, then route each question to the part of the system that owns that kind of fact.</p>
+  <div class="flow">
+    <div class="box"><h3>Keep every download</h3><p>Each snapshot keeps its own view. Identical pages are parsed once. Missing pages carry forward as a last resort.</p>
+      <ul class="files"><li><span>store.py</span><span>156</span></li><li><span>parse.py</span><span>330</span></li></ul></div>
+    <div class="box"><h3>Read the question</h3><p>Term, model year, balance, flags, metric and any date in the question.</p>
+      <ul class="files"><li><span>qparse.py</span><span>184</span></li></ul></div>
+    <div class="box"><h3>Pick the current value</h3><p>Rates go to the rate tables. Everything else uses stdlib keyword search plus sentence scoring.</p>
+      <ul class="files"><li><span>rates.py</span><span>377</span></li><li><span>search.py</span><span>104</span></li><li><span>text.py</span><span>478</span></li></ul></div>
+    <div class="box"><h3>Answer and report</h3><p>Answer with sources and a conflict note, or refuse. Conflicts are listed separately.</p>
+      <ul class="files"><li><span>engine.py</span><span>214</span></li><li><span>conflicts.py</span><span>254</span></li></ul></div>
+  </div>
+  <div class="choices">
+    <div class="choice"><h4>Why no LLM</h4><p>One stale number in an answer scored zero. Rules make every answer deterministic, fast and explainable. An LLM could still write the final sentence later, from values already filtered to current.</p></div>
+    <div class="choice"><h4>Why keep history</h4><p>"As of" questions need the site as it stood then, and conflicts only exist when you can compare copies across pages and downloads.</p></div>
+    <div class="choice"><h4>Why short conflict lists</h4><p>Conflicts are scored on precision and recall. Different tiers or rate vs APY are never reported, so the list stays at about 60 real ones.</p></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="step" id="s4">
+  <div class="kicker"><b>Step 4</b> How I tested it</div>
+  <h2 class="t">I didn't only tune on the 40 public questions.</h2>
+  <p class="say">I built five more question sets, including two blind rounds written without seeing the code. The number I stand behind is the blind one.</p>
+  <div class="proof">
+    <table>
+      <thead><tr><th>Question set</th><th>Questions</th><th>Score</th></tr></thead>
+      <tbody>
+        <tr><td>Public practice set</td><td>40</td><td class="s">0.87</td></tr>
+        <tr><td>New products, tiers, dates, refusals</td><td>34</td><td class="s">1.00</td></tr>
+        <tr><td>Rewordings of public questions</td><td>31</td><td class="s">0.93</td></tr>
+        <tr><td>Adversarial reviewer</td><td>95</td><td class="s">0.95 <small>from 0.62</small></td></tr>
+        <tr><td>Blind round one</td><td>70</td><td class="s">0.93 <small>from 0.71</small></td></tr>
+        <tr class="honest"><td>Blind round two, before fixes</td><td>60</td><td class="s">0.75</td></tr>
+      </tbody>
+    </table>
+    <div>
+      <div class="big">0</div>
+      <p class="bigl">stale or wrong-tier values in any answer, across every set.</p>
+      <div class="big" id="ms">50</div>
+      <p class="bigl">milliseconds per answer, at most. The bar for full speed marks was 2 seconds.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="step" id="s5">
+  <div class="kicker"><b>Step 5</b> Limits and what's next</div>
+  <h2 class="t">Where it falls short, and what I'd build next.</h2>
+  <p class="say">The misses are mostly one kind of question, which makes the next step clear.</p>
+  <div class="two">
+    <div class="list"><h3>Where it misses</h3><ul>
+      <li><b>Facts spread across paragraphs.</b> "Who is eligible" needs "live or work in the charter area" plus "Iowa, Illinois and Wisconsin". It quotes sentences, so it can't join them.</li>
+      <li><b>Ambiguous counts.</b> The site gives volunteer-time-off figures for 2023, 2024 and 2025.</li>
+      <li><b>Written for one credit union.</b> Page types and synonyms like CD and certificate live in two places: <code>parse.page_kind</code> and <code>rates.ALIASES</code>.</li></ul></div>
+    <div class="list"><h3>What I'd build next</h3><ul>
+      <li><b>An LLM that only writes the sentence.</b> It gets evidence already filtered to current values, so the stale-value trap stays closed.</li>
+      <li><b>Per-institution config.</b> Move page types and synonyms into a profile per credit union, so onboarding a new one is configuration, not code.</li>
+      <li><b>Conflict alerts for the institution.</b> The conflict list is useful on its own: it tells a credit union which of its pages still show old rates.</li></ul></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="step" id="s6">
+  <div class="kicker"><b>Step 6</b> Ask it anything</div>
+  <h2 class="t">Your turn. Ask it something I didn't prepare.</h2>
+  <div class="spine" id="spine" aria-label="Answer as the website stood on"></div>
+  <form id="ask"><label for="q" style="position:absolute;left:-9999px">Question</label>
+    <input type="text" id="q" autocomplete="off" placeholder="Ask about a rate, a branch, a fee, a date…">
+    <button class="go" type="submit">Ask</button></form>
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="answer">Answer</button>
+    <button role="tab" aria-selected="false" data-tab="over">Same question over time</button>
+    <button role="tab" aria-selected="false" data-tab="conf">Conflicts found <span id="ccount"></span></button>
+  </nav>
+  <div class="panel" id="p-answer"><p class="empty">Type a question above. Try "How many branches does Dupaco have?"</p></div>
+  <div class="panel" id="p-over" hidden><p class="empty">Ask a question to see how its answer changed across the five downloads.</p></div>
+  <div class="panel" id="p-conf" hidden><input class="cfilter" id="cfilter" placeholder="Filter, e.g. mortgage, branch, certificate"><div id="ctable"></div></div>
+</section>
+
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const KIND = {rates:"Rate sheet",product:"Product page",contact:"Contact page",promo:"Promo page",guide:"Guide",document:"PDF",calculator:"Calculator",article:"Article",listing:"Listing"};
+const short = u => u.replace(/^https?:\/\/(www\.)?dupaco\.com/,"") || "/";
+let asOf = null, last = "", conflicts = [];
+
+async function api(path){ return (await fetch(path)).json(); }
+const ask = (q, a) => api("/api/ask?q="+encodeURIComponent(q)+(a?"&as_of="+a:""));
+
+function copyCard(c, win){
+  const rows = (c.rows||[]).filter(r => r.values.length).slice(0,4).map(r =>
+    `<li>${esc(r.label)}: <span class="v">${esc(r.values.join(", "))}</span></li>`).join("");
+  return `<div class="copy ${win?"win":"lose"}"><div class="hd"><span class="who">${esc(short(c.url))}</span><span class="tag">${win?"Quoted":"Rejected"}</span></div>
+    <div class="kv">${esc(KIND[c.page_kind]||c.page_kind)}, authority ${c.authority}. Effective ${c.effective?fmtDate(c.effective):"not stated"}.</div>${rows?`<ul>${rows}</ul>`:""}</div>`;
+}
+function ansCard(r, full){
+  const a = r.answer, w = r.why || {};
+  const copies = w.winner ? `<div class="copies">${copyCard(w.winner,true)}${(w.losers||[]).slice(0, full?5:3).map(l=>copyCard(l,false)).join("")}</div>` : "";
+  const card = `<div class="ans"><span class="verdict ${a.confident?"ok":"no"}">${a.confident?"Answered":"Doesn't know, says so"}</span>
+    <p class="text">${esc(a.text)}</p>
+    ${a.conflict_note?`<p class="note">${esc(a.conflict_note)}</p>`:""}
+    ${full && a.sources.length?`<ul class="srcs">${a.sources.map(s=>`<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></li>`).join("")}</ul>`:""}
+    <div class="meta"><span>From the ${esc((w.snapshot||"").slice(3,13))} download</span><span>${r.ms} ms</span><span>No LLM</span></div></div>`;
+  if(!full) return card + copies;
+  const side = w.winner ? `<div><p style="font-weight:700;margin-bottom:4px">Why this answer</p><p style="color:var(--ink-2);font-size:.9rem">${(w.losers||[]).length ? `${w.losers.length} other cop${w.losers.length>1?"ies":"y"} of this rate exist. Newest effective date wins, then the more authoritative page.` : "Only one current copy of this rate exists."}</p>${copies}</div>`
+    : `<div><p style="font-weight:700;margin-bottom:4px">How it was answered</p><p style="color:var(--ink-2);font-size:.9rem">${a.confident?"Not a rate lookup, so it came from the best matching sentence, preferring newer and more authoritative pages.":"Nothing current on the site answers this, so it refuses without quoting any number."}</p></div>`;
+  return `<div class="console-ans">${card}${side}</div>`;
+}
+
+async function init(){
+  const m = await api("/api/meta");
+  $("#facts").innerHTML = `<li><b>5</b><span>downloads of the site</span></li><li><b>${m.snapshots.at(-1).pages}</b><span>pages in the newest one</span></li><li><b>${m.conflicts}</b><span>contradictions found</span></li><li><b>0</b><span>stale values in any answer</span></li>`;
+  $("#downloads").innerHTML = m.snapshots.map(s => `<div class="dl"><i></i><strong>${fmtDate(s.taken_on)}</strong><small>${esc(s.id.split("_").slice(2).join(" "))}</small><em>${s.pages} pages</em></div>`).join("");
+  $("#ccount").textContent = `(${m.conflicts})`;
+  const stops = m.snapshots.map(s => ({id:s.taken_on,label:fmtDate(s.taken_on),sub:s.id.split("_").slice(2).join(" ")})).concat([{id:"",label:"Today",sub:"newest download"}]);
+  $("#spine").innerHTML = stops.map(s => `<button class="stop" type="button" data-asof="${s.id}" aria-pressed="${s.id===""}"><i></i><strong>${esc(s.label)}</strong><small>${esc(s.sub)}</small></button>`).join("");
+  $("#spine").onclick = e => { const b = e.target.closest(".stop"); if(!b) return;
+    document.querySelectorAll(".stop").forEach(x => x.setAttribute("aria-pressed", x===b)); asOf = b.dataset.asof || null; if(last) run(last); };
+  conflicts = await api("/api/conflicts"); renderConflicts();
+}
+
+document.querySelectorAll(".run").forEach(b => b.onclick = async () => {
+  const out = b.nextElementSibling; out.innerHTML = `<p style="color:var(--ink-2)">Answering…</p>`;
+  out.innerHTML = ansCard(await ask(b.dataset.q, null), false);
+  b.firstChild.textContent = "Run again";
+});
+
+function renderConflicts(){
+  const f = $("#cfilter").value.toLowerCase();
+  const list = conflicts.filter(c => !f || (c.topic+" "+c.values.join(" ")+" "+c.reason).toLowerCase().includes(f));
+  $("#ctable").innerHTML = list.length ? `<table><thead><tr><th style="width:28%">Fact</th><th style="width:20%">Values seen</th><th style="width:12%">Kept</th><th>Why</th></tr></thead><tbody>${
+    list.map(c => `<tr><td>${esc(c.topic)}</td><td class="vals">${c.values.map(v=>`<span class="${v===c.resolution?"keep":""}">${esc(v)}</span>`).join("")}</td><td><strong>${esc(c.resolution)}</strong></td><td class="reason">${esc(c.reason)}</td></tr>`).join("")
+  }</tbody></table>` : `<p class="empty">No conflicts match "${esc(f)}". Clear the filter to see all ${conflicts.length}.</p>`;
+}
+$("#cfilter").oninput = renderConflicts;
+
+async function run(q){
+  q = q.trim(); if(!q) return; last = q;
+  document.querySelectorAll(".panel").forEach(p => p.classList.add("loading"));
+  $("#p-answer").innerHTML = ansCard(await ask(q, asOf), true);
+  const rows = await api("/api/timeline?q="+encodeURIComponent(q)); let prev = null;
+  $("#p-over").innerHTML = `<div class="over">${rows.map(r => { const ch = prev!==null && prev!==r.text; prev = r.text;
+    return `<div class="row ${ch?"changed":""}"><div><strong>${fmtDate(r.taken_on)}</strong><br><small>${ch?"answer changed":esc(r.snapshot.split("_").slice(2).join(" "))}</small></div><div>${esc(r.text)}</div></div>`; }).join("")}</div>`;
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("loading"));
+}
+$("#ask").onsubmit = e => { e.preventDefault(); run($("#q").value); };
+document.querySelector(".tabs").onclick = e => { const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x===b));
+  ["answer","over","conf"].forEach(t => $("#p-"+t).hidden = t !== b.dataset.tab); };
+
+/* rail highlight + keyboard stepping */
+const steps = [...document.querySelectorAll("section.step")];
+const links = [...document.querySelectorAll(".rail a")];
+let cur = 0;
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ cur = steps.indexOf(e.target); links.forEach((l,i)=>l.classList.toggle("on", i===cur)); } }),
+  {rootMargin:"-45% 0px -50% 0px"});
+steps.forEach(s => io.observe(s));
+/* each rule's demo runs itself the first time it scrolls into view */
+const auto = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ auto.unobserve(e.target); e.target.querySelector(".run").click(); } }), {threshold:.55});
+document.querySelectorAll(".rule").forEach(r => auto.observe(r));
+document.addEventListener("keydown", e => {
+  if(e.target.matches("input")) return;
+  if(["ArrowDown","PageDown"].includes(e.key)){ e.preventDefault(); steps[Math.min(cur+1, steps.length-1)].scrollIntoView(); }
+  if(["ArrowUp","PageUp"].includes(e.key)){ e.preventDefault(); steps[Math.max(cur-1, 0)].scrollIntoView(); }
+});
+init();
+</script>
+</body>
+</html>
