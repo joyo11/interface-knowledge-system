@@ -116,6 +116,80 @@ h2.t{font-size:clamp(2.1rem,3.6vw,3.2rem);line-height:1.06;letter-spacing:-.03em
 .choice h4{margin:0 0 6px;font-size:1.02rem}
 .choice p{color:var(--ink-2);font-size:.92rem}
 
+/* ---------- step 3: module explorer ---------- */
+.qpick{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.qpick button{font:inherit;font-size:.9rem;padding:10px 16px;border-radius:999px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink-2);cursor:pointer}
+.qpick button:hover{border-color:var(--ink);color:var(--ink)}
+.qpick button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.qpick button b{font-weight:700}
+.explorer{display:grid;grid-template-columns:310px minmax(0,1fr);gap:24px;align-items:start;margin-bottom:40px}
+.mods{position:sticky;top:32px;display:flex;flex-direction:column;gap:4px}
+.mods h4{font-size:.8rem;color:var(--ink-2);font-weight:600;margin:14px 0 6px 12px}
+.mods h4:first-child{margin-top:0}
+.mods button{display:grid;grid-template-columns:26px 1fr auto;gap:0 10px;align-items:center;text-align:left;font:inherit;padding:11px 12px;border-radius:12px;border:1.5px solid transparent;background:transparent;color:var(--ink);cursor:pointer}
+.mods button:hover{background:var(--sheet)}
+.mods button[aria-current=true]{background:var(--sheet);border-color:var(--ink)}
+.mods .n{font-weight:700;font-size:.82rem;color:var(--blue)}
+.mods .nm{font-weight:600;font-size:.95rem;line-height:1.25}
+.mods .nm small{display:block;font-weight:500;font-size:.76rem;color:var(--ink-2)}
+.st{font-size:.7rem;font-weight:700;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.st.used{background:var(--live-wash);color:var(--live)}
+.st.idle{background:var(--paper);color:var(--ink-2)}
+.st.load{background:var(--blue-wash);color:var(--blue)}
+.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:20px;padding:34px 38px;min-height:560px}
+.mod .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:6px}
+.mod h3{font-size:2rem;letter-spacing:-.025em;font-weight:800;margin:0;line-height:1.1}
+.mod .file{font-size:.85rem;color:var(--ink-2);margin:6px 0 20px}
+.mod .file b{color:var(--ink);font-weight:600}
+.mod .what{font-size:1.08rem;line-height:1.55;max-width:66ch;margin-bottom:22px}
+.io{display:grid;grid-template-columns:1fr 34px 1fr;align-items:stretch;margin-bottom:28px;max-width:760px}
+.io div{background:var(--paper);border-radius:12px;padding:12px 16px}
+.io small{display:block;font-size:.74rem;font-weight:600;color:var(--ink-2);margin-bottom:2px}
+.io span{font-size:.95rem;font-weight:600}
+.io i{align-self:center;justify-self:center;width:12px;height:12px;border-top:2.5px solid var(--ink-2);border-right:2.5px solid var(--ink-2);transform:rotate(45deg)}
+.live{border:1.5px solid var(--blue);border-radius:16px;padding:22px 24px;margin-bottom:26px;background:linear-gradient(var(--blue-wash),var(--blue-wash)) top/100% 0 no-repeat}
+.live > p.lh{font-weight:700;color:var(--blue);font-size:.92rem;margin-bottom:12px}
+.live .lq{font-size:.88rem;color:var(--ink-2);margin-bottom:14px}
+.kvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.kvs div{background:var(--paper);border-radius:10px;padding:10px 14px}
+.kvs small{display:block;font-size:.74rem;color:var(--ink-2);font-weight:600}
+.kvs b{font-size:1.05rem}
+.kvs .off b{color:var(--ink-2);font-weight:500}
+.route{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.route li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;padding:12px 14px;border-radius:12px;background:var(--paper);color:var(--ink-2)}
+.route li b{font-size:.85rem}
+.route li.taken{background:var(--live-wash);color:var(--ink);box-shadow:inset 4px 0 0 var(--live)}
+.route li.taken b{color:var(--live)}
+.route li.skip{opacity:.55}
+.hits{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hits li{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:10px 14px;border-radius:10px;background:var(--paper);font-size:.88rem}
+.hits li.win{background:var(--live-wash);box-shadow:inset 4px 0 0 var(--live)}
+.hits .sc{font-weight:700}
+.hits small{display:block;color:var(--ink-2)}
+.insight{margin-top:14px;padding:12px 16px;border-radius:10px;background:var(--stale-wash);border-left:3px solid var(--stale);font-size:.92rem}
+.mini{width:100%;border-collapse:collapse;font-size:.85rem;background:var(--paper);border-radius:10px;overflow:hidden;border:0}
+.mini td,.mini th{padding:8px 12px;border-bottom:1px solid var(--rule);text-align:left}
+.mini th{font-size:.78rem}
+.eff{display:inline-block;margin-top:12px;font-weight:700;color:var(--live);background:var(--live-wash);padding:6px 12px;border-radius:8px}
+.whybuilt{display:flex;gap:14px;align-items:baseline;margin-bottom:26px;max-width:72ch}
+.whybuilt b{white-space:nowrap;font-size:.9rem;color:var(--blue)}
+.whybuilt p{font-size:1rem}
+.code{border-radius:16px;background:#14213D;color:#E7ECF5;overflow:hidden}
+.code .ch{display:flex;justify-content:space-between;padding:12px 18px;font-size:.8rem;color:#A9B6D3;border-bottom:1px solid #2A3A5E}
+.code .ch b{color:#fff;font-weight:600}
+.code pre{margin:0;padding:14px 0;max-height:430px;overflow:auto;font:13.5px/1.6 ui-monospace,"SF Mono",Menlo,monospace}
+.code .ln{display:grid;grid-template-columns:52px 1fr;padding-right:18px}
+.code .ln > span:first-child{color:#5E6E92;text-align:right;padding-right:16px;user-select:none}
+.code .ln > span:last-child{white-space:pre}
+.code .k{color:#9DB7F5}.code .c{color:#7F8DAD;font-style:italic}.code .s{color:#9FD8B4}.code .f{color:#F2C879}
+.code .gap{color:#7F8DAD;padding:6px 0 6px 68px;font-style:italic}
+.modnav{display:flex;justify-content:space-between;margin-top:22px}
+.modnav button{font:inherit;font-weight:600;font-size:.92rem;padding:10px 16px;border-radius:12px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.modnav button:hover{border-color:var(--ink)}
+.modnav button:disabled{opacity:.35;cursor:default}
+.modnav kbd{font:inherit;font-size:.75rem;border:1px solid var(--rule);border-radius:4px;padding:0 5px;margin-left:6px;color:var(--ink-2)}
+.choices{margin-top:8px}
+
 /* ---------- step 4: proof ---------- */
 .proof{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
 table{width:100%;border-collapse:collapse;background:var(--sheet);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--rule);font-size:.95rem}
@@ -174,7 +248,9 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 @media (max-width:1100px){
   .rail{display:none} main{margin-left:0}
   section.step{padding:56px 24px}
-  .traps,.flow,.choices,.two,.proof,.rule,.console-ans{grid-template-columns:1fr}
+  .traps,.flow,.choices,.two,.proof,.rule,.console-ans,.explorer{grid-template-columns:1fr}
+  .mods{position:static}
+  .mod{padding:24px 20px}
   .box::after{display:none}
   .downloads,.spine{grid-template-columns:repeat(3,1fr);row-gap:18px}
   .downloads::before,.spine::before{display:none}
@@ -258,18 +334,16 @@ td.reason{color:var(--ink-2);font-size:.85rem;word-break:break-word}
 <!-- 3 -->
 <section class="step" id="s3">
   <div class="kicker"><b>Step 3</b> How it's built</div>
-  <h2 class="t">About 2,100 lines of plain Python. No packages, no API keys.</h2>
-  <p class="say">Ingest once, keep history, then route each question to the part of the system that owns that kind of fact.</p>
-  <div class="flow">
-    <div class="box"><h3>Keep every download</h3><p>Each snapshot keeps its own view. Identical pages are parsed once. Missing pages carry forward as a last resort.</p>
-      <ul class="files"><li><span>store.py</span><span>156</span></li><li><span>parse.py</span><span>330</span></li></ul></div>
-    <div class="box"><h3>Read the question</h3><p>Term, model year, balance, flags, metric and any date in the question.</p>
-      <ul class="files"><li><span>qparse.py</span><span>184</span></li></ul></div>
-    <div class="box"><h3>Pick the current value</h3><p>Rates go to the rate tables. Everything else uses stdlib keyword search plus sentence scoring.</p>
-      <ul class="files"><li><span>rates.py</span><span>377</span></li><li><span>search.py</span><span>104</span></li><li><span>text.py</span><span>478</span></li></ul></div>
-    <div class="box"><h3>Answer and report</h3><p>Answer with sources and a conflict note, or refuse. Conflicts are listed separately.</p>
-      <ul class="files"><li><span>engine.py</span><span>214</span></li><li><span>conflicts.py</span><span>254</span></li></ul></div>
+  <h2 class="t">Nine small modules. Open any one to see what it does.</h2>
+  <p class="say">About 2,100 lines of plain Python, no packages and no API keys. Pick a question, then open each module to watch what it does with that question, live.</p>
+
+  <div class="qpick" id="qpick" role="group" aria-label="Question to trace"></div>
+
+  <div class="explorer">
+    <nav class="mods" id="mods" aria-label="Modules"></nav>
+    <article class="mod" id="mod" aria-live="polite"></article>
   </div>
+
   <div class="choices">
     <div class="choice"><h4>Why no LLM</h4><p>One stale number in an answer scored zero. Rules make every answer deterministic, fast and explainable. An LLM could still write the final sentence later, from values already filtered to current.</p></div>
     <div class="choice"><h4>Why keep history</h4><p>"As of" questions need the site as it stood then, and conflicts only exist when you can compare copies across pages and downloads.</p></div>
@@ -413,6 +487,159 @@ document.querySelector(".tabs").onclick = e => { const b = e.target.closest("but
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x===b));
   ["answer","over","conf"].forEach(t => $("#p-"+t).hidden = t !== b.dataset.tab); };
 
+/* ---------- step 3: module explorer ---------- */
+const QPICK = [
+  ["A rate", "What's the APR for a 60-month auto loan on a 2025 model-year vehicle?"],
+  ["Not on the site", "What is your rate on a 7/1 adjustable-rate mortgage?"],
+  ["Branch hours", "What are the drive-up hours?"],
+  ["A count", "How many branches does Dupaco have?"],
+];
+const HANDLER = {hours:"the hours handler: it reads the Lobby and Drive-up schedule blocks across branch pages",
+  address:"the address handler: it reads the branch locator first",
+  contact_fact:"the contact handler: it reads labelled fields on the contact page, like the routing number",
+  fee:"the fee handler: it picks the single best line in the fee schedule",
+  count:"the count handler: it picks the newest dated statement of the number",
+  best_sentences:"general retrieval: it scores sentences on how much of the question they cover"};
+const MODULES = [
+  {id:"parse", group:"When the site is loaded", name:"The page reader", file:"kb/parse.py", lines:330, fn:"AUTHORITY,effective_date",
+   what:"Runs once, when the website is loaded. It splits every page into sections, finds the rate tables, and reads the line under each table that says “Rates are effective as of”. It also labels each page by type from its address, which sets how much that page is trusted.",
+   inp:"A web page as text", outp:"Sections, and rate tables with their own effective date",
+   why:"Giving every table its own date is what lets the system tell a new rate from an old one.", status:t=>"load"},
+  {id:"store", group:"When the site is loaded", name:"The memory", file:"kb/store.py", lines:156, fn:"Store.view_for",
+   what:"Keeps all five downloads separately instead of only the newest. A page that didn't change is stored once, not five times. A page missing from a later download is kept, but only as a last resort.",
+   inp:"Five downloads of the website", outp:"One view of the site for each date",
+   why:"History is what makes “as of” questions and conflict detection possible.", status:t=>"used"},
+  {id:"solution", group:"When a question arrives", name:"The front door", file:"solution.py", lines:67, fn:"KnowledgeSystem.answer",
+   what:"The file interface.ai's scorer plugs into. It connects the three required methods, ingest, answer and conflicts, to the real logic. It also remembers answers, so asking the same question twice returns the identical answer instantly.",
+   inp:"A call from the scorer", outp:"An answer: text, sources, confidence and a conflict note",
+   why:"Keeping the contract tiny means all the logic lives in modules that can be tested on their own.", status:t=>"used"},
+  {id:"qparse", group:"When a question arrives", name:"The question reader", file:"kb/qparse.py", lines:184, fn:"parse_question",
+   what:"Turns the member's sentence into exact fields: the term in months, the vehicle model year, a balance or loan amount, words like jumbo or business, APR or APY, and any date written inside the question.",
+   inp:"The member's question", outp:"Structured fields",
+   why:"Matching on fields instead of raw words is what keeps a 72-month rate out of a 60-month answer.", status:t=>"used"},
+  {id:"engine", group:"When a question arrives", name:"The router", file:"kb/engine.py", lines:214, fn:"Engine.answer",
+   what:"Decides which part of the system answers. Rate questions go to the rate picker. If no current rate answers, it checks whether the product used to be offered, and otherwise refuses. Everything else goes to the text answerer.",
+   inp:"Structured fields", outp:"The path that answers it",
+   why:"Each kind of fact has one owner, so rate logic never leaks into hours or addresses.", status:t=>"used"},
+  {id:"search", group:"When a question arrives", name:"The search engine", file:"kb/search.py", lines:104, fn:"BM25.search",
+   what:"A classic keyword ranking method called BM25, written from scratch with only Python's standard library. It finds the candidate tables and passages. It doesn't decide what's true: the rules after it do.",
+   inp:"The question's words", outp:"Ranked candidates",
+   why:"No embeddings means no API key, no network calls and no randomness.", status:t=>"used"},
+  {id:"rates", group:"When a question arrives", name:"The rate picker", file:"kb/rates.py", lines:377, fn:"_rank,row_ok", star:true,
+   what:"Where 5.39% beats 5.34%. It keeps only the rows that match the question's term, model year and balance. It groups copies of the same rate from different pages, then ranks them: newest effective date first, then the more authoritative page.",
+   inp:"Candidate rate tables", outp:"One winning rate, plus the stale copies it rejected",
+   why:"The date beats the page type because an outdated rate sheet is still outdated.", status:t=>["rates","discontinued"].includes(t.engine.route)?"used":(t.engine.route==="refuse"&&t.qparse.rate_intent?"used":"idle")},
+  {id:"text", group:"When a question arrives", name:"The text answerer", file:"kb/text.py", lines:478, fn:"TextAnswerer.answer",
+   what:"Answers everything that isn't a rate: branch hours, addresses, contact facts like the routing number, fees, “how many” counts, and otherwise the single best matching sentence on the site.",
+   inp:"Questions that aren't rate lookups", outp:"A cited answer, or a refusal",
+   why:"Dedicated handlers for common facts are more precise than general search.", status:t=>t.engine.route==="text"||(t.engine.route==="refuse"&&!t.qparse.rate_intent)?"used":"idle"},
+  {id:"conflicts", group:"When a question arrives", name:"The contradiction finder", file:"kb/conflicts.py", lines:254, fn:"find_conflicts",
+   what:"Lists every place the website disagrees with itself: stale copies of a rate on other pages, counts restated differently in old articles, and official rates that changed between downloads. Different tiers or terms are never reported, because they aren't contradictions.",
+   inp:"Every page in every download", outp:"61 contradictions, each with the value kept and why",
+   why:"A short, precise list scores better and is genuinely useful to a credit union.", status:t=>"used"},
+];
+const ST = {used:["used","Used"], idle:["idle","Not needed"], load:["load","Ran at load"]};
+let modIdx = 6, tr = null, trQ = QPICK[0][1];
+const srcCache = {};
+
+function hl(line){
+  const e = line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return e.replace(/(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(def|class|return|if|elif|else|for|in|not|and|or|is|None|True|False|import|from|with|lambda|try|except|while|break|continue|pass|raise)\b|\b([A-Za-z_]\w*)(?=\()/g,
+    (m,c,s,k,f) => c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:k?`<span class="k">${k}</span>`:`<span class="f">${f}</span>`);
+}
+function codeHTML(src, m){
+  const MAX = 46;
+  return src.blocks.map(b => {
+    let ls = b.code.split("\n"), cut = ls.length > MAX;
+    if(cut) ls = ls.slice(0, MAX);
+    return ls.map((l,i) => `<div class="ln"><span>${b.start+i}</span><span>${hl(l)}</span></div>`).join("") +
+      (cut ? `<div class="gap">… ${b.code.split("\n").length - MAX} more lines in ${esc(m.file)}</div>` : "") + `<div class="gap"></div>`;
+  }).join("");
+}
+
+function liveHTML(m, t){
+  const L = (body) => `<div class="live"><p class="lh">What it did with this question</p><p class="lq">“${esc(t.question)}”</p>${body}</div>`;
+  const k = (label, v) => `<div class="${v==null||v===""||(Array.isArray(v)&&!v.length)||v===false?"off":""}"><small>${label}</small><b>${v==null||v===""||(Array.isArray(v)&&!v.length)?"not in the question":v===true?"yes":v===false?"no":esc(Array.isArray(v)?v.join(", "):v)}</b></div>`;
+  const s = t.store, q = t.qparse, r = t.engine.route;
+  switch(m.id){
+    case "parse": {
+      const p = t.parse;
+      if(!p) return L(`<p>This question isn't answered from a rate table, so no table was needed. At load time the reader still processed all ${s.pages} pages of this download into ${s.units.toLocaleString()} searchable pieces.</p>`);
+      return L(`<p style="margin-bottom:10px">The table this answer came from, as the reader built it from <b>${esc(short(p.url))}</b> (${esc(KIND[p.page_kind]||p.page_kind)}, trust ${p.authority}):</p>
+        <table class="mini"><thead><tr>${p.header.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${p.rows.map(rw=>`<tr>${rw.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>
+        <p style="font-size:.82rem;color:var(--ink-2);margin-top:6px">${p.n_rows>4?`First 4 of ${p.n_rows} rows.`:""}</p>
+        <span class="eff">Effective date read from the page: ${p.effective?fmtDate(p.effective):"none"}</span>`);
+    }
+    case "store": return L(`<div class="kvs">${k("Download used", fmtDate(s.taken_on))}${k("Chosen because", s.picked_by)}${k("Pages in it", s.pages)}${k("Searchable pieces", s.units.toLocaleString())}${k("Kept from older downloads", s.carried)}${k("Unique pieces across all 5", s.unique_units_all.toLocaleString())}</div>
+      <p style="margin-top:12px;font-size:.9rem;color:var(--ink-2)">Five downloads would be about ${(s.units*5).toLocaleString()} pieces if stored separately. Storing unchanged pages once keeps it to ${s.unique_units_all.toLocaleString()}.</p>`);
+    case "solution": { const a = t.solution.answer;
+      return L(`<div class="kvs" style="grid-template-columns:1fr">${k("text", a.text)}</div><div class="kvs" style="margin-top:10px">${k("confident", a.confident)}${k("sources", a.sources.map(x=>short(x.url)).join(", ")||"none")}${k("conflict_note", a.conflict_note||"none")}</div>`); }
+    case "qparse": return L(`<div class="kvs">${k("Term (months)", q.term_months)}${k("Model year", q.model_year)}${k("Amount", q.amount?(q.amount[1]==null?"$"+Number(q.amount[0]).toLocaleString()+" and up":q.amount[0]===q.amount[1]?"$"+Number(q.amount[0]).toLocaleString():q.amount.map(x=>"$"+Number(x).toLocaleString()).join(" to ")):null)}${k("Rate type", q.metric?q.metric.toUpperCase():null)}${k("Flags", q.flags)}${k("Date in question", q.as_of_text)}${k("Asks for a rate", q.rate_intent)}${k("Asks for a list", q.list_intent)}</div>`);
+    case "engine": {
+      const steps = [["link","Asks for a link?","Return the page that answers it."],["rates","A rate question with a current table?","Send it to the rate picker."],["discontinued","Was the product offered before?","Say it's no longer offered, with no number."],["refuse","A rate question with nothing current?","Refuse, with no numbers at all."],["text","Anything else","Send it to the text answerer."]];
+      const order = steps.map(x=>x[0]); const ti = order.indexOf(r);
+      return L(`<ol class="route">${steps.map(([id,qq,a],i)=>`<li class="${id===r?"taken":(i<ti?"skip":"")}"><b>${id===r?"Taken":i<ti?"No":""}</b><div><strong>${qq}</strong><br>${a}</div></li>`).join("")}</ol><p style="margin-top:12px">${esc(t.engine.why)}</p>`);
+    }
+    case "search": {
+      const win = t.rates.winner && t.rates.winner.url;
+      const top = t.search.hits[0];
+      const ins = win && top && top.url !== win ? `<div class="insight"><b>Notice:</b> search alone ranks <b>${esc(short(top.url))}</b> first, but that page is out of date. The rate picker chose <b>${esc(short(win))}</b>. Ranking finds candidates; the rules decide what's true.</div>` : "";
+      return L(`<p style="font-size:.88rem;color:var(--ink-2);margin-bottom:10px">Searched ${esc(t.search.scope)}. Top 5:</p><ol class="hits">${t.search.hits.map(h=>`<li class="${h.url===win?"win":""}"><span class="sc">${h.score}</span><span>${esc(short(h.url))}<small>${esc(h.heading||"")}</small></span></li>`).join("")}</ol>${ins}`);
+    }
+    case "rates": {
+      if(!t.rates.winner) return L(r==="refuse"&&q.rate_intent ? `<p>It looked for a current rate table for this exact product and found none. So the router refuses instead of quoting a nearby rate.</p>` : `<p>Not needed: this isn't a rate question, so the text answerer handled it.</p>`);
+      return L(`<p style="font-size:.9rem;color:var(--ink-2);margin-bottom:10px">${t.rates.losers.length} stale cop${t.rates.losers.length===1?"y":"ies"} rejected. Newest effective date wins, then the more authoritative page.</p><div class="copies">${copyCard(t.rates.winner,true)}${t.rates.losers.slice(0,3).map(l=>copyCard(l,false)).join("")}</div>`);
+    }
+    case "text": {
+      if(!t.text) return L(`<p>Not needed: ${r==="refuse"?"the router refused this before any text search.":"the rate picker answered this question."}</p>`);
+      const x = t.text;
+      return L(`<p>Answered by <b>${esc(HANDLER[x.handler]||x.handler)}</b>.</p><div class="kvs" style="grid-template-columns:1fr;margin-top:12px">${k("Answer", t.solution.answer.text)}</div>${x.sentences.length?`<ol class="hits" style="margin-top:12px">${x.sentences.map(z=>`<li><span class="sc">${z.score}</span><span>${esc(z.sentence)}<small>${esc(short(z.url))}</small></span></li>`).join("")}</ol>`:""}`);
+    }
+    case "conflicts": {
+      const rel = t.conflicts.related;
+      return L(`<p style="margin-bottom:12px">${t.conflicts.total} contradictions found across the whole site. ${rel.length?`${rel.length} involve the pages this answer used:`:"None involve the pages this answer used."}</p>${rel.length?`<table class="mini"><thead><tr><th>Fact</th><th>Values seen</th><th>Kept</th></tr></thead><tbody>${rel.map(c=>`<tr><td>${esc(c.topic)}</td><td>${c.values.map(esc).join(", ")}</td><td><b>${esc(c.resolution)}</b></td></tr>`).join("")}</tbody></table>`:""}`);
+    }
+  }
+}
+
+function renderMods(){
+  let g = "";
+  $("#mods").innerHTML = MODULES.map((m,i) => {
+    const head = m.group !== g ? `<h4>${esc(m.group)}</h4>` : ""; g = m.group;
+    const st = tr ? ST[m.status(tr)] : null;
+    return `${head}<button type="button" data-i="${i}" aria-current="${i===modIdx}"><span class="n">${i+1}</span><span class="nm">${esc(m.name)}${m.star?" ⭐":""}<small>${esc(m.file)}</small></span>${st?`<span class="st ${st[0]}">${st[1]}</span>`:""}</button>`;
+  }).join("");
+}
+async function renderMod(){
+  const m = MODULES[modIdx];
+  renderMods();
+  if(!srcCache[m.id]) srcCache[m.id] = await api(`/api/source?file=${encodeURIComponent(m.file)}&fn=${encodeURIComponent(m.fn)}`);
+  const src = srcCache[m.id];
+  $("#mod").innerHTML = `
+    <div class="top"><h3>${esc(m.name)}</h3>${tr?`<span class="st ${ST[m.status(tr)][0]}">${ST[m.status(tr)][1]}</span>`:""}</div>
+    <p class="file"><b>${esc(m.file)}</b>, ${m.lines} lines</p>
+    <p class="what">${esc(m.what)}</p>
+    <div class="io"><div><small>Takes in</small><span>${esc(m.inp)}</span></div><i></i><div><small>Gives back</small><span>${esc(m.outp)}</span></div></div>
+    ${tr ? liveHTML(m, tr) : `<div class="live"><p class="lh">Tracing the question…</p></div>`}
+    <div class="whybuilt"><b>Why this way</b><p>${esc(m.why)}</p></div>
+    <div class="code"><div class="ch"><span>The real code, <b>${esc(src.blocks.map(b=>b.name).join(" and "))}</b></span><span>${esc(m.file)}</span></div><pre>${codeHTML(src, m)}</pre></div>
+    <div class="modnav"><button type="button" id="mprev" ${modIdx===0?"disabled":""}>Previous module<kbd>←</kbd></button><button type="button" id="mnext" ${modIdx===MODULES.length-1?"disabled":""}>Next module<kbd>→</kbd></button></div>`;
+  $("#mprev").onclick = () => goMod(modIdx-1);
+  $("#mnext").onclick = () => goMod(modIdx+1);
+}
+function goMod(i){ if(i<0||i>=MODULES.length) return; modIdx = i; renderMod(); }
+$("#mods").onclick = e => { const b = e.target.closest("button"); if(b) goMod(+b.dataset.i); };
+async function traceQ(qq){
+  trQ = qq; tr = null;
+  document.querySelectorAll("#qpick button").forEach(b => b.setAttribute("aria-pressed", b.dataset.q===qq));
+  renderMod();
+  tr = await api("/api/trace?q="+encodeURIComponent(qq));
+  renderMod();
+}
+$("#qpick").innerHTML = QPICK.map(([k,qq]) => `<button type="button" data-q="${esc(qq)}"><b>${k}:</b> ${esc(qq)}</button>`).join("");
+$("#qpick").onclick = e => { const b = e.target.closest("button"); if(b) traceQ(b.dataset.q); };
+traceQ(trQ);
+
 /* rail highlight + keyboard stepping */
 const steps = [...document.querySelectorAll("section.step")];
 const links = [...document.querySelectorAll(".rail a")];
@@ -424,7 +651,10 @@ steps.forEach(s => io.observe(s));
 const auto = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ auto.unobserve(e.target); e.target.classList.add("shown"); } }), {threshold:.35});
 preload.then(() => document.querySelectorAll(".rule").forEach(r => auto.observe(r)));
 document.addEventListener("keydown", e => {
-  if(e.target.matches("input")) return;
+  if(e.target.matches && e.target.matches("input")) return;
+  if(steps[cur] && steps[cur].id === "s3" && ["ArrowLeft","ArrowRight"].includes(e.key)){
+    e.preventDefault(); goMod(modIdx + (e.key==="ArrowRight"?1:-1)); return;
+  }
   if(["ArrowDown","PageDown"].includes(e.key)){ e.preventDefault(); steps[Math.min(cur+1, steps.length-1)].scrollIntoView(); }
   if(["ArrowUp","PageUp"].includes(e.key)){ e.preventDefault(); steps[Math.max(cur-1, 0)].scrollIntoView(); }
 });
